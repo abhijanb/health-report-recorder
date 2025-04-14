@@ -23,52 +23,51 @@ const index = ({medicines}) => {
   return (
     <AppLayout breadcrumbs={breadcrumbs} >
     <Head title="Medicine" />
-    <div>
-        <h1>Medicine List</h1>
-        {/* table */}
-        <table className="table-auto w-full">
-            <thead>
-                <tr>
-                    <th className="px-4 py-2">Medicine Name</th>
-                    <th className="px-4 py-2">Dosage</th>
-                    <th className="px-4 py-2">Frequency</th>
-                    <th className="px-4 py-2">Start Date</th>
-                    <th className="px-4 py-2">End Date</th>
-                    <th className="px-4 py-2">Price</th>
-                    <th className="px-4 py-2">Store Name</th>
-                    <th className="px-4 py-2">View</th>
-                    
-                </tr>
-            </thead>
-            <tbody>
-  {medicines.map((medicine: Medicine) => (
-    <tr key={medicine.id} className="border-b hover:bg-gray-800 transition">
-      <td className="px-6 py-4">{medicine.medicine_name}</td>
-      <td className="px-6 py-4">{medicine.dosage}</td>
-      <td className="px-6 py-4">{medicine.frequency}</td>
-      <td className="px-6 py-4">{medicine.start_date}</td>
-      <td className="px-6 py-4">{medicine.end_date}</td>
-      <td className="px-6 py-4">₹{medicine.price}</td>
-      <td className="px-6 py-4">{medicine.store_name}</td>
+    <div className="p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-md">
+  <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">Medicine List</h1>
 
-      {/* View */}
-      <td className="px-6 py-4 text-center">
-        <div className="flex flex-col items-center space-y-1">
-          <p className="text-[10px] text-gray-500">2 mins ago</p>
-          <Link href={`/medicine/${medicine.id}/show`} className="text-blue-600 hover:underline">View</Link>
-        </div>
-      </td>
+  <div className="overflow-x-auto">
+    <table className="min-w-full text-sm text-left text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 uppercase text-xs font-semibold">
+        <tr>
+          <th className="px-6 py-3">Medicine Name</th>
+          <th className="px-6 py-3">Dosage</th>
+          <th className="px-6 py-3">Frequency</th>
+          <th className="px-6 py-3">Start Date</th>
+          <th className="px-6 py-3">End Date</th>
+          <th className="px-6 py-3">Price</th>
+          <th className="px-6 py-3">Store Name</th>
+          <th className="px-6 py-3 text-center">View</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+        {medicines.map((medicine: Medicine) => (
+          <tr key={medicine.id} className="hover:bg-gray-50 dark:hover:bg-gray-800 transition">
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.medicine_name}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.dosage}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.frequency}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.start_date}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.end_date}</td>
+            <td className="px-6 py-4 whitespace-nowrap">₹{medicine.price}</td>
+            <td className="px-6 py-4 whitespace-nowrap">{medicine.store_name}</td>
+            <td className="px-6 py-4 text-center">
+              <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">2 mins ago</span>
+                <Link
+                  href={`/medicine/${medicine.id}/show`}
+                  className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                >
+                  View
+                </Link>
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+</div>
 
-      
-
-     
-    </tr>
-  ))}
-</tbody>
-
-        </table>
-
-    </div>
     </AppLayout>
   )
 }
