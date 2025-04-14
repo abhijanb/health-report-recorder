@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\HealthRecord;
+use App\Models\RecordHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -25,7 +26,7 @@ class HealthReportController extends Controller
             'name'=>'required|string|max:255',
             'record_type'=>'required|string|in:file,text,image',
             'record_details'=>'required|string|max:2000',
-            'record_file'=>($request->hasFile('record_file')?"file|mimes:jpeg,png,jpg|max:2048" : ""),
+            'record_file'=>($request->hasFile('record_file')?"file|mimes:jpeg,png,jpg,pdf|max:2048" : ""),
             'visibility'=>'required|in:public_all,friends,private,',   
             'value'=>'numeric'
         ]);
@@ -95,4 +96,14 @@ class HealthReportController extends Controller
         $record->delete();
         return to_route('health-record.index');
     }
+
+   public function history(HealthRecord $healthRecord)
+   {
+    $histories = HealthRecord::find($healthRecord->id)->histories;
+    if($histories->isEmpty()){
+        return Inertia::render("healthRecord/history")->with(["message"=>"No history found"]);
+    }
+    
+    return Inertia::render("healthRecord/history",["histories" => $histories]);
+   }
 }

@@ -17,4 +17,8 @@ class HealthRecord extends Model
         'value'
     ];
     public $timestamps = true;
+
+    public function histories(){
+        return $this->hasMany(RecordHistory::class, 'record_id');
+    }
 }

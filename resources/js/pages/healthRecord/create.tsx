@@ -68,131 +68,136 @@ const create = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Health" />
-        <div className="flex items-center justify-center min-h-screen bg-gray-50 text-black">
-        <div className="w-full max-w-lg p-6 bg-white rounded-lg shadow-lg">
-            <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6">Create Health Record</h2>
-            
-            <form className="space-y-6" onSubmit={submit}>
-                <div className="space-y-6">
-                    {/* Name Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                            id="name"
-                            type="text"
-                            required
-                            autoFocus
-                            tabIndex={1}
-                            autoComplete="name"
-                            value={data.name}
-                            onChange={(e) => setData('name', e.target.value)}
-                            disabled={processing}
-                            placeholder="Full name"
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <InputError message={errors.name} className="mt-2 text-red-500" />
-                    </div>
-    
-                    {/* Record Type Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="record_type">Record Type</Label>
-                        <select
-                            id="record_type"
-                            required
-                            name="record_type"
-                            value={data.record_type}
-                            onChange={handleTypeChange}
-                            disabled={processing}
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        >
-                            <option value={RecordType.File}>File</option>
-                            <option value={RecordType.Text}>Text</option>
-                            <option value={RecordType.Image}>Image</option>
-                        </select>
-                        <InputError message={errors.record_type} className="mt-2 text-red-500" />
-                    </div>
-    
-                    {/* Record Details Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="record_details">Record Details</Label>
-                        <textarea
-                            id="record_details"
-                            required
-                            name="record_details"
-                            value={data.record_details}
-                            onChange={(e) => setData('record_details', e.target.value)}
-                            disabled={processing}
-                            placeholder="Record details"
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <InputError message={errors.record_details} className="mt-2 text-red-500" />
-                    </div>
-    
-                    {/* Record File Field */}
-                    <div className="space-y-2">
-                        <Label className={NotText ? 'text-black' : 'cursor-not-allowed text-gray-400'} htmlFor="record_file">
-                            Record File
-                        </Label>
-                        <input
-                            id="record_file"
-                            type="file"
-                            name="record_file"
-                            accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-                            onChange={ImageChange}
-                            disabled={!NotText}
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <InputError message={errors.record_file} className="mt-2 text-red-500" />
-                    </div>
-    
-                    {/* Visibility Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="visibility">Visibility</Label>
-                        <select
-                            id="visibility"
-                            required
-                            name="visibility"
-                            value={data.visibility}
-                            onChange={VisibilityChange}
-                            disabled={processing}
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        >
-                            <option value={Visibility.Public}>Public</option>
-                            <option value={Visibility.Private}>Private</option>
-                            <option value={Visibility.Friends}>Friends</option>
-                        </select>
-                        <InputError message={errors.visibility} className="mt-2 text-red-500" />
-                    </div>
-    
-                    {/* Value Field */}
-                    <div className="space-y-2">
-                        <Label htmlFor="value">Value</Label>
-                        <input
-                            id="value"
-                            type="number"
-                            name="value"
-                            value={data.value}
-                            onChange={(e) => setData('value', parseFloat(e.target.value) || 0)}
-                            disabled={processing}
-                            className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <InputError message={errors.value} className="mt-2 text-red-500" />
-                    </div>
-                </div>
-    
-                {/* Submit Button */}
-                <Button
-                    type="submit"
-                    className="mt-4 w-full py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-400"
-                    tabIndex={5}
-                    disabled={processing}
-                >
-                    {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                    Create
-                </Button>
-            </form>
+            <div className="dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
+  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
+    <div className="w-full max-w-lg mx-auto p-6 rounded-lg shadow-lg bg-white dark:bg-gray-900 dark:shadow-md">
+      <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-6">
+        Create Health Record
+      </h2>
+
+      <form className="space-y-6" onSubmit={submit}>
+        <div className="space-y-6">
+          {/* Name Field */}
+          <div className="space-y-2">
+            <Label htmlFor="name" className="dark:text-white">Name</Label>
+            <Input
+              id="name"
+              type="text"
+              required
+              autoFocus
+              tabIndex={1}
+              autoComplete="name"
+              value={data.name}
+              onChange={(e) => setData('name', e.target.value)}
+              disabled={processing}
+              placeholder="Full name"
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+            <InputError message={errors.name} className="mt-2 text-red-500" />
+          </div>
+
+          {/* Record Type Field */}
+          <div className="space-y-2">
+            <Label htmlFor="record_type" className="dark:text-white">Record Type</Label>
+            <select
+              id="record_type"
+              required
+              name="record_type"
+              value={data.record_type}
+              onChange={handleTypeChange}
+              disabled={processing}
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            >
+              <option value={RecordType.File}>File</option>
+              <option value={RecordType.Text}>Text</option>
+              <option value={RecordType.Image}>Image</option>
+            </select>
+            <InputError message={errors.record_type} className="mt-2 text-red-500" />
+          </div>
+
+          {/* Record Details Field */}
+          <div className="space-y-2">
+            <Label htmlFor="record_details" className="dark:text-white">Record Details</Label>
+            <textarea
+              id="record_details"
+              required
+              name="record_details"
+              value={data.record_details}
+              onChange={(e) => setData('record_details', e.target.value)}
+              disabled={processing}
+              placeholder="Record details"
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+            <InputError message={errors.record_details} className="mt-2 text-red-500" />
+          </div>
+
+          {/* Record File Field */}
+          <div className="space-y-2">
+            <Label htmlFor="record_file" className={NotText ? 'dark:text-white' : 'cursor-not-allowed text-gray-400'}>
+              Record File
+            </Label>
+            <input
+              id="record_file"
+              type="file"
+              name="record_file"
+              accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+              onChange={ImageChange}
+              disabled={!NotText}
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+            <InputError message={errors.record_file} className="mt-2 text-red-500" />
+          </div>
+
+          {/* Visibility Field */}
+          <div className="space-y-2">
+            <Label htmlFor="visibility" className="dark:text-white">Visibility</Label>
+            <select
+              id="visibility"
+              required
+              name="visibility"
+              value={data.visibility}
+              onChange={VisibilityChange}
+              disabled={processing}
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            >
+              <option value={Visibility.Public}>Public</option>
+              <option value={Visibility.Private}>Private</option>
+              <option value={Visibility.Friends}>Friends</option>
+            </select>
+            <InputError message={errors.visibility} className="mt-2 text-red-500" />
+          </div>
+
+          {/* Value Field */}
+          <div className="space-y-2">
+            <Label htmlFor="value" className="dark:text-white">Value</Label>
+            <input
+              id="value"
+              type="number"
+              name="value"
+              value={data.value}
+              onChange={(e) => setData('value', parseFloat(e.target.value) || 0)}
+              disabled={processing}
+              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+            <InputError message={errors.value} className="mt-2 text-red-500" />
+          </div>
         </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          className="mt-4 w-full py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-400"
+          tabIndex={5}
+          disabled={processing}
+        >
+          {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+          Create
+        </Button>
+      </form>
     </div>
+  </div>
+</div>
+
         </AppLayout>
     
 
