@@ -15,7 +15,7 @@ type Props = {
 };
 
 const Show = ({ record }: Props) => {
-    const { auth } = usePage<SharedData>().props;
+    const { auth,message } = usePage<SharedData>().props;
     // only date and time so seperating into date and time
     const createdDate = new Date(record.created_at);
     const updatedDate = new Date(record.updated_at);
@@ -27,14 +27,16 @@ const Show = ({ record }: Props) => {
 
     // ✅ Calculate hours since creation
     const diffMs = now.getTime() - createdDate.getTime();
+    // console.log(diffMs / (1000 * 60))
     const diffHours = diffMs / (1000 * 60 * 60);
     let diffMinutes = 0
-    if (diffHours < 4) {
-       diffMinutes = Math.ceil(diffMs / (1000 * 60));
+    if (updatedDate.getTime() === createdDate.getTime() && diffHours < 4) {
+        diffMinutes = (4*60) -  Math.floor(diffMs / (1000 * 60));
     }
     // ✅ Editability logic
     const editable = updatedDate.getTime() === createdDate.getTime() && diffHours <= 4;
-console.log(editable)
+    console.log(record.created_at === record.updated_at)
+    // console.log(createdDate.getSeconds())
     const breadcrumbs: BreadcrumbItem[] = [
         {
             title: `welcome ${auth.user.name}`,
@@ -59,6 +61,7 @@ console.log(editable)
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Display" />
+            {message ? <div className='bg-red-500'>{message}</div> : ""}
             <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-10 dark:bg-gray-900">
                 <button
                     onClick={() => window.print()}

@@ -19,6 +19,8 @@ return new class extends Migration
             $table->text('reminder_message');
             $table->date('reminder_time');
             $table->boolean('is_active')->default(true);
+            $table->softDeletes();
+
             $table->timestamps(0);
         });
     }

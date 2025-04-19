@@ -101,11 +101,14 @@ const [sortedRecords, setSortedRecords] = useState(records);
             </button>
           </div>
         </div>
-        <div className="flex justify-end px-8 my-6">
+        <div className="flex justify-around px-8 my-6">
           <Link href={`/health-record/create`}
             className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors duration-200 hover:bg-blue-700"
           >
             Create New Report
+          </Link>
+          <Link href={`/health-record/trash`} className="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors duration-200 hover:bg-blue-700">
+          Deleted Record trash
           </Link>
         </div>
         <div className="grid gap-6 p-6 sm:grid-cols-1 lg:grid-cols-2">

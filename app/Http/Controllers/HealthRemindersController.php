@@ -53,4 +53,5 @@ class HealthRemindersController extends Controller
         $reminder->delete();
         return to_route('reminder.index');
     }
+    
 }

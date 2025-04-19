@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('record_details');
             $table->string('record_file')->nullable();
             $table->enum('visibility', ['public_all', 'friends', 'private']);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

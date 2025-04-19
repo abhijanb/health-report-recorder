@@ -22,6 +22,8 @@ return new class extends Migration
             $table->decimal('price', 10, 2)->nullable();
             $table->string('store_name');
             $table->string('prescription')->nullable();
+            $table->softDeletes();
+
             $table->timestamps();
         });
     }

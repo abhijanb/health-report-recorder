@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
+use Carbon\Carbon;
+
 
 class HealthReportController extends Controller
 {
@@ -37,14 +39,14 @@ class HealthReportController extends Controller
             'record_type'=>$request->record_type,
             'record_details'=>$request->record_details,
             'visibility'=>$request->visibility,
-            'value'=>$request->value,
+            'value'=>$request->value
         ];
         if($request->record_file == null){
             $data['record_file'] = null;
         HealthRecord::create($data);
         return to_route('health-record.index');
         }
-        $filepath = $request->file('record_file')->store('health-records','public');
+        $filepath = $request->file('record_file')->store('health-records','private');
         $data['record_file'] = $filepath;
 
         HealthRecord::create($data);
@@ -53,6 +55,8 @@ class HealthReportController extends Controller
 
     public function show($id){
         $record = HealthRecord::where('user_id',Auth::id())->find($id);
+        $path = storage_path('app/private' . $record->record_file);
+        $record["record_file"] = $path;
         return Inertia::render('healthRecord/show',['record'=>$record]);
     }
 
@@ -85,16 +89,21 @@ class HealthReportController extends Controller
             $data['record_file'] = $record->record_file;
         }else{
             
-            $filepath = $request->file('record_file')->store('health-records','public');
+            $filepath = $request->file('record_file')->store('health-records','private');
             $data['record_file'] = $filepath;
         }
         $record->update($data);
         return to_route('health-record.index');
     }
     public function destroy($id){
+
         $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        $record->delete();
-        return to_route('health-record.index');
+        if(  Carbon::now()->diffInHours($record->created_at) < 4 ){
+
+            $record->delete();
+            return to_route('health-record.index');
+        }
+        return back()->with(["message" => "cannot delete after 4 hours"]);
     }
 
    public function history(HealthRecord $healthRecord)
@@ -105,5 +114,32 @@ class HealthReportController extends Controller
     }
     
     return Inertia::render("healthRecord/history",["histories" => $histories]);
+   }
+
+   public function trashAll(){
+    $user = Auth::id();
+    $records = HealthRecord::onlyTrashed()->where("user_id",$user)->get();
+    
+    return Inertia::render("healthRecord/trash",["data"=>$records]);
+   }
+
+   public function restore( $healthRecord){
+    $record =  HealthRecord::onlyTrashed()->where("user_id",Auth::id())->find($healthRecord);
+    if(!$record){
+        return back()->with(["message"=>"no record found"]);
+        
+    }
+    $record->restore();
+    return back()->with(["message"=>"record restored"]);
+   }
+
+   public function permanent( $healthRecord){
+    $record =  HealthRecord::onlyTrashed()->where("user_id",Auth::id())->find($healthRecord);
+    if(!$record){
+        return back()->with(["message"=>"nor found record "]);
+
+    }
+$record->forceDelete();
+return back()->with(["message"=>"record deleted permanently"]);
    }
 }
