@@ -23,6 +23,7 @@ type Record = {
     records: Record;
   };
 const index = ({ records }:Props) => {
+  
     const [sortField, setSortField] = useState('created_at');
     const [sortDirection, setSortDirection] = useState('desc');
 const [sortedRecords, setSortedRecords] = useState(records);

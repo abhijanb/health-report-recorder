@@ -16,4 +16,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get("/health-record/{healthRecord}/restore",[HealthReportController::class,"restore"])->name("restore");
     Route::get("/health-record/{healthRecord}/permanent",[HealthReportController::class,'permanent'])->name("permanent");
     
+    
 });

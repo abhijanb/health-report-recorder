@@ -51,4 +51,11 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+    public function relations(){
+        return $this->hasMany(Relation::class,'user_id');
+    }
+
+    public function record(){
+        return $this->hasMany(HealthRecord::class,'user_id');
+    }
 }
