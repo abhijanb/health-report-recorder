@@ -8,7 +8,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Pest\ArchPresets\Relaxed;
 
 class RelationController extends Controller
 {
@@ -18,29 +17,27 @@ class RelationController extends Controller
     public function getUserRelations()
 {
     $user = Auth::user();
-    // if ($user->id !== Auth::id()) {
-    //     abort(403, 'Unauthorized action.');
-    // }
-    // dd(Relation::where('user_id',Auth::id())->get());
-   
-    $relations = $user->relations()
-        ->with('relatedUser:id,name,avatar') // eager load the related user
-        ->get()
-        ->map(function ($relation) {
-            return [
+    if(!$user){
+        return back()->with('message','please login');
+    }
 
+    $relationColletion = $user->relations()
+        ->with('relatedUser:id,name,avatar') // eager load the related user
+        ->paginate(10);
+    $relations = $relationColletion->getCollection()->map(function ($relation) {
+            return [
                 'relation_user_id' => $relation->relation_user_id,
                 'relation_user_name' => $relation->relatedUser->name ?? null,
                 'relationship_name' => $relation->relationship_name,
                 'relationship_avatar' => $relation->relatedUser->avatar
             ];
         });
-
+    $relations = $relationColletion->setCollection($relations);
+       
     return Inertia::render('Relation/index',['relations'=>$relations]);
 }
 
 public function showRelationData(User $user){
-    // dd($user);
     
 $records = $user->record()->where('visibility','public_all')->orWhere('visibility','friends')->get();
 return Inertia::render('Relation/record',['records'=>$records]);

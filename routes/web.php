@@ -19,3 +19,4 @@ require __DIR__.'/healthRecord.php';
 require __DIR__.'/reminder.php';
 require __DIR__.'/medicine.php';
 require __DIR__.'/relation.php';
+require __DIR__.'/friend.php';
