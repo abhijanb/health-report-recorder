@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import AppLayout from '@/layouts/app-layout';
 import { SharedData } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import React from 'react';
@@ -54,6 +55,8 @@ const Create = () => {
   };
 
   return (
+     <AppLayout >
+    <Head title="Medicine" />
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4 py-10">
             <Head title='Add Medicine' />
 
@@ -137,6 +140,7 @@ const Create = () => {
         </form>
       </div>
     </div>
+    </AppLayout>
   );
 };
 
