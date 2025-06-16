@@ -33,33 +33,32 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'dob' => 'required|date',
-    'gender' => 'required|in:male,female,other',
-    'phone_number' => 'required|string|max:20',
-    'address' => 'required|string|max:255',
-    'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'gender' => 'required|in:male,female,other',
+            'phone_number' => 'required|string|max:20',
+            'address' => 'required|string|max:255',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
-$userData = [
-    'name' => $request->name,
-    'email' => $request->email,
-    'password' => Hash::make($request->password),
-    'date_of_birth' => $request->dob,
-    'gender' => $request->gender,
-    'phone_number' => $request->phone_number,
-    'address' => $request->address,
-    'email_verified_at'=>Carbon::now()
-];
-if ($request->hasFile('avatar')) {
-    $avatarPath = $request->file('avatar')->store('avatars', 'public'); 
-    $userData['avatar'] = $avatarPath; // Save the file path in the database
-} 
+        $userData = [
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'date_of_birth' => $request->dob,
+            'gender' => $request->gender,
+            'phone_number' => $request->phone_number,
+            'address' => $request->address,
+        ];
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $userData['avatar'] = $avatarPath; // Save the file path in the database
+        }
 
         $user = User::create($userData);
 
         event(new Registered($user));
-
+        // return to email verified then auth login
         Auth::login($user);
 
         return to_route('dashboard');
