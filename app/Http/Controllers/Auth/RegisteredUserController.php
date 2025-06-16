@@ -49,7 +49,7 @@ $userData = [
     'gender' => $request->gender,
     'phone_number' => $request->phone_number,
     'address' => $request->address,
-    'email_verified_at'=>Carbon::now()
+    // 'email_verified_at'=>Carbon::now()
 ];
 if ($request->hasFile('avatar')) {
     $avatarPath = $request->file('avatar')->store('avatars', 'public'); 
@@ -58,10 +58,10 @@ if ($request->hasFile('avatar')) {
 
         $user = User::create($userData);
 
+        
+        Auth::login($user);
         event(new Registered($user));
 
-        Auth::login($user);
-
-        return to_route('dashboard');
+        return to_route('verification.notice');
     }
 }
