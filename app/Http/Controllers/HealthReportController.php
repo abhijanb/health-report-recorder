@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Carbon\Carbon;
-
+use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class HealthReportController extends Controller
 {
@@ -23,50 +25,108 @@ class HealthReportController extends Controller
         return Inertia::render('healthRecord/create');
     }
 
-    public function store(Request $request){
-        $request->validate([
-            'name'=>'required|string|max:255',
-            'record_type'=>'required|string|in:file,text,image',
-            'record_details'=>'required|string|max:2000',
-            'record_file'=>($request->hasFile('record_file')?"file|mimes:jpeg,png,jpg,pdf|max:2048" : ""),
-            'visibility'=>'required|in:public_all,friends,private,',   
-            'value'=>'numeric'
-        ]);
-      
-        $data = [
-            'user_id' => Auth::id(),
-            'name'=>$request->name,
-            'record_type'=>$request->record_type,
-            'record_details'=>$request->record_details,
-            'visibility'=>$request->visibility,
-            'value'=>$request->value
-        ];
-        if($request->record_file == null){
-            $data['record_file'] = null;
-        HealthRecord::create($data);
-        return to_route('health-record.index');
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'record_type' => 'required|in:file,text,image,json',
+        'record_details' => 'nullable|string',
+        'record_file' => 'nullable|file',
+        'priority' => 'required|in:low,normal,high',
+        'status' => 'required|in:active,archived,pending',
+        'visibility' => 'required|in:public_all,friends,private',
+        'value' => 'nullable|numeric',
+        'unit' => 'nullable|string',
+        'date_of_record' => 'nullable|date',
+        'tags' => 'nullable|array',
+        'tags.*' => 'string',
+        'source' => 'nullable|string',
+    ]);
+    if (in_array($request->record_type, ['file', 'image'])) {
+        if (!$request->hasFile('record_file')) {
+            throw ValidationException::withMessages([
+                'record_file' => 'Record file is required when record type is file or image.'
+            ]);
         }
-        $filepath = $request->file('record_file')->store('health-records','private');
-        $data['record_file'] = $filepath;
+        if (empty($request->record_details)) {
+            throw ValidationException::withMessages([
+                'record_details' => 'Record details are required when record type is file or image.'
+            ]);
+        }
+    }
+    $file = $request->file('record_file');
+    $filepath = $file ? $file->store('health-records', 'private') : null;
+    $tags = $request->tags ? json_encode($request->tags) : null;
+    $existing = HealthRecord::where('user_id', Auth::id())
+        ->where('name', $request->name)
+        ->first();
+    if ($existing) {
+        RecordHistory::create([
+            'user_id' => $existing->user_id,
+            'record_id' => $existing->id,
+            'name' => $existing->name,
+            'record_type' => $existing->record_type,
+            'record_details' => $existing->record_details,
+            'record_file' => $existing->record_file,
+            'priority' => $existing->priority,
+            'status' => $existing->status,
+            'visibility' => $existing->visibility,
+            'value' => $existing->value,
+            'unit' => $existing->unit,
+            'date_of_record' => $existing->date_of_record,
+            'tags' => $existing->tags,
+            'source' => $existing->source,
+        ]);
 
-        HealthRecord::create($data);
-        return to_route('health-record.index');
+        // Now update existing record with new values
+        $existing->update([
+            'record_type' => $request->record_type,
+            'record_details' => $request->record_details,
+            'record_file' => $filepath,
+            'priority' => $request->priority,
+            'status' => $request->status,
+            'visibility' => $request->visibility,
+            'value' => $request->value,
+            'unit' => $request->unit,
+            'date_of_record' => $request->date_of_record,
+            'tags' => $tags,
+            'source' => $request->source,
+        ]);
+
+    } else {
+        HealthRecord::create([
+            'user_id' => Auth::id(),
+            'name' => $request->name,
+            'record_type' => $request->record_type,
+            'record_details' => $request->record_details,
+            'record_file' => $filepath,
+            'priority' => $request->priority,
+            'status' => $request->status,
+            'visibility' => $request->visibility,
+            'value' => $request->value,
+            'unit' => $request->unit,
+            'date_of_record' => $request->date_of_record,
+            'tags' => $tags,
+            'source' => $request->source,
+        ]);
     }
 
-    public function show($id){
+    return to_route('health-record.index')->with('success', 'Health record saved successfully.');
+}
+    public function show($id)
+    {
         $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        $path = storage_path('app/private' . $record->record_file);
-        $record["record_file"] = $path;
         return Inertia::render('healthRecord/show',['record'=>$record]);
     }
 
-    public function edit($id){
+    public function edit($id)
+    {
         $record = HealthRecord::where('user_id',Auth::id())->find($id);
         // dd($record);
         return Inertia::render('healthRecord/edit',['record'=>$record]);
     }
-    public function update(Request $request,$id){
-        dd($request->all());
+    public function update(Request $request,$id)
+    {
         $request->validate([
             'name'=>'required|string|max:255',
            'record_type'=>'required|string|in:file,text,image',
@@ -142,4 +202,29 @@ class HealthReportController extends Controller
 $record->forceDelete();
 return back()->with(["message"=>"record deleted permanently"]);
    }
+
+
+//    $img = "private/health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png"; 
+
+
+public function showImage($filename)
+{
+    $path = 'health-records/' . $filename;
+
+    if (!Storage::disk('private')->exists($path)) {
+        abort(404, 'File not found.');
+    }
+
+    $file = Storage::disk('private')->get($path);
+    $type = Storage::disk('private')->mimeType($path);
+return Storage::disk('private')->download('health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png');
+    // return Response::make($file, 200)->header("Content-Type", $type);
+}
+
+// public function test() {
+//     $relativePath = 'health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png';
+//     return Storage::disk('private')->download($relativePath);
+// }
+
+
 }

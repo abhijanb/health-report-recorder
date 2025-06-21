@@ -32,8 +32,6 @@ public function searchAll($search)
 
     return $this->renderSearch($data);
 }
-
-
 public function searchUser($search)
 {
     $data = User::where('name', 'like', "%{$search}%")
@@ -42,20 +40,6 @@ public function searchUser($search)
 
     return $this->renderSearch($data);
 }
-
-public function searchDoctor($search)
-{
-    $data = User::where('role', 'doctor')
-        ->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
-        })
-        ->paginate(10);
-
-        return $this->renderSearch($data);
-
-}
-
 public function searchUrgent($search)
 {
     $data = HealthRecord::where('priority', 'high')
@@ -68,7 +52,6 @@ public function searchUrgent($search)
         return $this->renderSearch($data);
 
 }
-
 public function searchPublic($search)
 {
     $data = HealthRecord::where('visibility', 'public_all')
@@ -81,7 +64,6 @@ public function searchPublic($search)
         return $this->renderSearch($data);
 
 }
-
 public function searchTag($search)
 {
     $data = HealthRecord::whereJsonContains('tags', $search)
@@ -90,17 +72,6 @@ public function searchTag($search)
         return $this->renderSearch($data);
 
 }
-
-public function searchBilling($search)
-{
-    $data = HealthRecord::where('unit', 'like', "%{$search}%")
-        ->orWhere('value', 'like', "%{$search}%")
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-
 public function searchDate($search)
 {
     $data = HealthRecord::whereDate('date_of_record', $search)
@@ -109,7 +80,6 @@ public function searchDate($search)
         return $this->renderSearch($data);
 
 }
-
 public function searchField($search)
 {
     $data = HealthRecord::where('record_type', $search)
@@ -133,4 +103,28 @@ public function searchFuture($search)
 
 }
 
+
+
+public function searchDoctor($search)
+{
+    $data = User::where('role', 'doctor')
+        ->where(function ($q) use ($search) {
+            $q->where('name', 'like', "%{$search}%")
+              ->orWhere('email', 'like', "%{$search}%");
+        })
+        ->paginate(10);
+
+        return $this->renderSearch($data);
+
+}
+
+public function searchBilling($search)
+{
+    $data = HealthRecord::where('unit', 'like', "%{$search}%")
+        ->orWhere('value', 'like', "%{$search}%")
+        ->paginate(15);
+
+        return $this->renderSearch($data);
+
+}
 }

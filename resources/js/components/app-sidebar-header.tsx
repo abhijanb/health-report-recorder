@@ -1,5 +1,6 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import Searchbar from '@/pages/Searchbar';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -27,6 +28,8 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 <SidebarTrigger className="-ml-1 " />
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
+
+            <Searchbar  />
             <button className=' ' onClick={toggleTheme}>{theme == 'light' ? <Sun /> :<Moon /> }</button>
         </header>
         </>

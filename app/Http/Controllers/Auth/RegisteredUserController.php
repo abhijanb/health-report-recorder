@@ -37,8 +37,6 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'dob' => 'required|date',
             'gender' => 'required|in:male,female,other',
-            'phone_number' => 'required|string|max:20',
-            'address' => 'required|string|max:255',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
         $userData = [
@@ -47,8 +45,6 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
             'date_of_birth' => $request->dob,
             'gender' => $request->gender,
-            'phone_number' => $request->phone_number,
-            'address' => $request->address,
         ];
         if ($request->hasFile('avatar')) {
             $avatarPath = $request->file('avatar')->store('avatars', 'public');

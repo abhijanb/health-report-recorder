@@ -49,4 +49,6 @@ class DashboardController extends Controller
             'userProfile' => $userProfile
         ]);
     }
+
+  
 }

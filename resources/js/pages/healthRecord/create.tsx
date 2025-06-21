@@ -6,202 +6,326 @@ import AppLayout from '@/layouts/app-layout';
 import { BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import React, { FormEventHandler } from 'react';
-enum RecordType {
-    File = 'file',
-    Text = 'text',
-    Image = 'image',
-}
-enum Visibility {
-    Public = 'public_all',
-    Private = 'private',
-    Friends = 'friends',
-}
-type HealthRecordForm = {
-    name: string;
-    record_type: RecordType;
-    record_details: string;
-    record_file: File | null;
-    visibility: Visibility;
-    value: number;
-};
+import React, { useRef } from 'react';
+
 const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Health',
-        href: '/health-record',
-    },
+  { title: 'Health', href: '/health-record' },
 ];
-const create = () => {
-    const { processing, errors, post, data, setData, reset } = useForm<HealthRecordForm>({
-        
-        name: '',
-        record_type: RecordType.File,
-        record_details: '',
-        record_file: null,
-        visibility: Visibility.Private,
-        value: 0,
+
+const HealthRecordForm = () => {
+  const { processing, errors, post, data, setData, reset } = useForm({
+    name: '',
+    record_type: 'file',
+    record_details: '',
+    record_file: null,
+    priority: '',
+    status: '',
+    visibility: '',
+    value: 0,
+    unit: '',
+    tags: [],
+    source: '',
+  });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Determine if record_type requires file and details
+  const isFileOrImage = data.record_type === 'file' || data.record_type === 'image';
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      setData('record_file', file);
+    } else {
+      setData('record_file', null);
+    }
+  };
+
+  // Client-side validation before submit
+  const canSubmit = () => {
+    if (!data.record_details.trim()) return false; // details required
+    if (isFileOrImage) {
+      if (!data.record_file) return false;  // file required
+    }
+    return true;
+  };
+
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!canSubmit()) {
+      alert('Please provide both a file and record details for File or Image record types.');
+      return;
+    }
+  
+    post(route('health-record.store'), {
+      forceFormData: true,
+      onFinish: () => reset(),
     });
+  };
 
-    const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setData('record_type', e.target.value as RecordType);
-    };
-    const ImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0] || null;
-        if (file) {
-            setData('record_file', file);
-        }
-    };
-    const VisibilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        setData('visibility', e.target.value as Visibility);
-    };
-    const NotText = data.record_type !== RecordType.Text;
-    const submit: FormEventHandler = (e) => {
-        e.preventDefault();
-        post(route('health-record.store'), {
-            onFinish: () => {
-                // Reset the form or perform any other actions
-                reset('name', 'record_type', 'record_details', 'record_file', 'visibility', 'value');
-            },
-        });
-    };
-    console.log("rerender");
-    return (
-        <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Health" />
-            <div className="dark:bg-gradient-to-br dark:from-gray-900 dark:to-gray-800">
-  <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-4 py-12 dark:from-gray-900 dark:to-gray-800 sm:px-6 lg:px-8">
-    <div className="w-full max-w-lg mx-auto p-6 rounded-lg shadow-lg bg-white dark:bg-gray-900 dark:shadow-md">
-      <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-6">
-        Create Health Record
-      </h2>
+  // Allowed medical units only
+  const medicalUnits = [
+    { value: 'mg/dL', label: 'mg/dL (milligrams per deciliter)' },
+    { value: 'mmol/L', label: 'mmol/L (millimoles per liter)' },
+    { value: 'bpm', label: 'bpm (beats per minute)' },
+    { value: 'mmHg', label: 'mmHg (millimeters of mercury)' },
+  ];
 
-      <form className="space-y-6" onSubmit={submit}>
-        <div className="space-y-6">
-          {/* Name Field */}
-          <div className="space-y-2">
-            <Label htmlFor="name" className="dark:text-white">Name</Label>
-            <Input
-              id="name"
-              type="text"
-              required
-              autoFocus
-              tabIndex={1}
-              autoComplete="name"
-              value={data.name}
-              onChange={(e) => setData('name', e.target.value)}
+  return (
+    <AppLayout breadcrumbs={breadcrumbs}>
+      <Head title="Create Health Record" />
+      <div className="min-h-screen px-4 py-12 bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full max-w-lg mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-md">
+          <h2 className="text-2xl font-semibold text-center text-gray-800 dark:text-white mb-6">
+            Create Health Record
+          </h2>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {/* Name */}
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={data.name}
+                onChange={(e) => setData('name', e.target.value)}
+                disabled={processing}
+                required
+              />
+              <InputError message={errors.name} />
+            </div>
+
+            {/* Record Type */}
+            <div className="space-y-2">
+              <Label htmlFor="record_type">Record Type</Label>
+              <select
+                id="record_type"
+                value={data.record_type}
+                onChange={(e) => setData('record_type', e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                disabled={processing}
+                required
+              >
+                <option value="file">File</option>
+                <option value="text">Text</option>
+                <option value="image">Image</option>
+                <option value="json">JSON</option>
+              </select>
+              <InputError message={errors.record_type} />
+            </div>
+
+            {/* Record Details */}
+            <div className="space-y-2">
+              <Label htmlFor="record_details">Record Details</Label>
+              <textarea
+                id="record_details"
+                value={data.record_details}
+                onChange={(e) => setData('record_details', e.target.value)}
+                disabled={processing}
+                placeholder="Enter detailed info"
+                className={`w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white ${
+                  isFileOrImage && !data.record_details.trim()
+                    ? 'border-red-500'
+                    : 'border-gray-300 dark:border-gray-700'
+                }`}
+                required={isFileOrImage}
+              />
+              {isFileOrImage && !data.record_details.trim() && (
+                <p className="text-red-500 text-sm">Record details are required for File/Image records.</p>
+              )}
+              <InputError message={errors.record_details} />
+            </div>
+
+            {/* Record File */}
+            <div className="space-y-2">
+              <Label htmlFor="record_file">Record File</Label>
+              <input
+                ref={fileInputRef}
+                id="record_file"
+                type="file"
+                onChange={handleFileChange}
+                disabled={processing}
+                className={`w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white ${
+                  isFileOrImage && !data.record_file ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                }`}
+                accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                required={isFileOrImage}
+              />
+              {isFileOrImage && !data.record_file && (
+                <p className="text-red-500 text-sm">A file must be uploaded for File/Image records.</p>
+              )}
+              <InputError message={errors.record_file} />
+            </div>
+
+            {/* Priority */}
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <select
+                id="priority"
+                value={data.priority}
+                onChange={(e) => setData('priority', e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                disabled={processing}
+                required
+              >
+                <option value="" disabled>
+                  -- Select Priority --
+                </option>
+                <option value="low">Low — Less urgent</option>
+                <option value="normal">Normal — Standard attention</option>
+                <option value="high">High — Immediate action needed</option>
+              </select>
+              <InputError message={errors.priority} />
+            </div>
+
+            {/* Status */}
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <select
+                id="status"
+                value={data.status}
+                onChange={(e) => setData('status', e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                disabled={processing}
+                required
+              >
+                <option value="" disabled>
+                  -- Select Status --
+                </option>
+                <option value="active">Active — Currently in use</option>
+                <option value="archived">Archived — Stored but inactive</option>
+                <option value="pending">Pending — Awaiting action</option>
+              </select>
+              <InputError message={errors.status} />
+            </div>
+
+            {/* Visibility */}
+            <div className="space-y-2">
+              <Label htmlFor="visibility">Visibility</Label>
+              <select
+                id="visibility"
+                value={data.visibility}
+                onChange={(e) => setData('visibility', e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                disabled={processing}
+                required
+              >
+                <option value="" disabled>
+                  -- Select Visibility --
+                </option>
+                <option value="public_all">Public — Visible to everyone</option>
+                <option value="friends">Friends — Shared with friends only</option>
+                <option value="private">Private — Only you can see</option>
+              </select>
+              <InputError message={errors.visibility} />
+            </div>
+
+            {/* Value */}
+            <div className="space-y-2">
+              <Label htmlFor="value">Value</Label>
+              <Input
+                id="value"
+                type="number"
+                value={data.value}
+                onChange={(e) => setData('value', parseFloat(e.target.value) || 0)}
+                disabled={processing}
+                placeholder="Numeric value"
+              />
+              <InputError message={errors.value} />
+            </div>
+
+            {/* Unit */}
+            <div className="space-y-2">
+              <Label htmlFor="unit">Unit</Label>
+              <select
+                id="unit"
+                value={data.unit}
+                onChange={(e) => setData('unit', e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                disabled={processing}
+              >
+                <option value="" disabled>
+                  -- Select Unit --
+                </option>
+                {medicalUnits.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <InputError message={errors.unit} />
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-2">
+              <Label>Tags</Label>
+              <div className="flex flex-wrap items-center gap-2 border p-2 rounded-md">
+                {data.tags.map((tag: string, index: number) => (
+                  <div
+                    key={index}
+                    className="flex items-center bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-sm cursor-default"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newTags = [...data.tags];
+                        newTags.splice(index, 1);
+                        setData('tags', newTags);
+                      }}
+                      className="ml-2 text-red-500 hover:text-red-700 focus:outline-none"
+                      aria-label={`Remove tag ${tag}`}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+                <input
+                  type="text"
+                  placeholder="Add tag and press Enter"
+                  disabled={processing}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val && !data.tags.includes(val)) {
+                        setData('tags', [...data.tags, val]);
+                        (e.target as HTMLInputElement).value = '';
+                      }
+                    }
+                  }}
+                  className="flex-grow p-1 border-none focus:ring-0 dark:bg-gray-900 dark:text-white"
+                />
+              </div>
+              <InputError message={errors.tags} />
+            </div>
+
+            {/* Source */}
+            <div className="space-y-2">
+              <Label htmlFor="source">Source</Label>
+              <Input
+                id="source"
+                value={data.source}
+                onChange={(e) => setData('source', e.target.value)}
+                disabled={processing}
+                placeholder="Record source (optional)"
+              />
+              <InputError message={errors.source} />
+            </div>
+
+            <Button
+              type="submit"
+              className="mt-4 w-full py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-400"
               disabled={processing}
-              placeholder="Full name"
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-            <InputError message={errors.name} className="mt-2 text-red-500" />
-          </div>
-
-          {/* Record Type Field */}
-          <div className="space-y-2">
-            <Label htmlFor="record_type" className="dark:text-white">Record Type</Label>
-            <select
-              id="record_type"
-              required
-              name="record_type"
-              value={data.record_type}
-              onChange={handleTypeChange}
-              disabled={processing}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             >
-              <option value={RecordType.File}>File</option>
-              <option value={RecordType.Text}>Text</option>
-              <option value={RecordType.Image}>Image</option>
-            </select>
-            <InputError message={errors.record_type} className="mt-2 text-red-500" />
-          </div>
-
-          {/* Record Details Field */}
-          <div className="space-y-2">
-            <Label htmlFor="record_details" className="dark:text-white">Record Details</Label>
-            <textarea
-              id="record_details"
-              required
-              name="record_details"
-              value={data.record_details}
-              onChange={(e) => setData('record_details', e.target.value)}
-              disabled={processing}
-              placeholder="Record details"
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-            <InputError message={errors.record_details} className="mt-2 text-red-500" />
-          </div>
-
-          {/* Record File Field */}
-          <div className="space-y-2">
-            <Label htmlFor="record_file" className={NotText ? 'dark:text-white' : 'cursor-not-allowed text-gray-400'}>
-              Record File
-            </Label>
-            <input
-              id="record_file"
-              type="file"
-              name="record_file"
-              accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
-              onChange={ImageChange}
-              disabled={!NotText}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-            <InputError message={errors.record_file} className="mt-2 text-red-500" />
-          </div>
-
-          {/* Visibility Field */}
-          <div className="space-y-2">
-            <Label htmlFor="visibility" className="dark:text-white">Visibility</Label>
-            <select
-              id="visibility"
-              required
-              name="visibility"
-              value={data.visibility}
-              onChange={VisibilityChange}
-              disabled={processing}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            >
-              <option value={Visibility.Public}>Public</option>
-              <option value={Visibility.Private}>Private</option>
-              <option value={Visibility.Friends}>Friends</option>
-            </select>
-            <InputError message={errors.visibility} className="mt-2 text-red-500" />
-          </div>
-
-          {/* Value Field */}
-          <div className="space-y-2">
-            <Label htmlFor="value" className="dark:text-white">Value</Label>
-            <input
-              id="value"
-              type="number"
-              name="value"
-              value={data.value}
-              onChange={(e) => setData('value', parseFloat(e.target.value) || 0)}
-              disabled={processing}
-              className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-            <InputError message={errors.value} className="mt-2 text-red-500" />
-          </div>
+              {processing && <LoaderCircle className="h-4 w-4 animate-spin mr-2 inline-block" />}
+              Create
+            </Button>
+          </form>
         </div>
-
-        {/* Submit Button */}
-        <Button
-          type="submit"
-          className="mt-4 w-full py-2 bg-indigo-600 text-white rounded-md shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 disabled:bg-gray-400"
-          tabIndex={5}
-          disabled={processing}
-        >
-          {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-          Create
-        </Button>
-      </form>
-    </div>
-  </div>
-</div>
-
-        </AppLayout>
-    
-
-    );
+      </div>
+    </AppLayout>
+  );
 };
 
-export default create;
+export default HealthRecordForm;

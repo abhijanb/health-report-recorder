@@ -20,8 +20,6 @@ type RegisterForm = {
     password_confirmation: string;
     dob: string;
     gender: Gender;
-    phone_number: string;
-    address:string;
     avatar: File | null;
 };
 
@@ -33,8 +31,6 @@ export default function Register() {
         password_confirmation: '',
         dob:'',
         gender: Gender.Male,
-        phone_number:'',
-        address:'',
         avatar:null
     });
   const handleGender =(e:React.ChangeEvent<HTMLSelectElement>)=>{
@@ -143,34 +139,8 @@ export default function Register() {
                       </select>
                       {errors.gender ? <p className='error'>{errors.gender}</p> : ''}
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="phone_number">Phone number</Label>
-                        <Input
-                            id="phone_number"
-                            type="text"
-                            required
-                            tabIndex={6}
-                            value={data.phone_number}
-                            onChange={(e) => setData('phone_number', e.target.value)}
-                            disabled={processing}
-                            placeholder="enter phone_number"
-                        />
-                        <InputError message={errors.phone_number} />
-                    </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="address">address</Label>
-                        <Input
-                            id="address"
-                            type="text"
-                            required
-                            tabIndex={7}
-                            value={data.address}
-                            onChange={(e) => setData('address', e.target.value)}
-                            disabled={processing}
-                            placeholder="enter address"
-                        />
-                        <InputError message={errors.address} />
-                    </div>
+                   
+                    
                     <div className="grid gap-2">
                         <Label htmlFor="avatar">avatar</Label>
                         <Input
