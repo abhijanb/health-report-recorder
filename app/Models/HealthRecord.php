@@ -21,14 +21,12 @@ class HealthRecord extends Model
         'visibility',
         'value',
         'unit',
-        'date_of_record',
         'tags',
         'source',
     ];
 
     protected $casts = [
         'tags' => 'array',
-        'date_of_record' => 'date',
         'value' => 'decimal:2',
     ];
 

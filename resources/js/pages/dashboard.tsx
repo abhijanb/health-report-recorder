@@ -97,21 +97,7 @@ export default function Dashboard() {
                                 </div>
                             </div>
                         </div>
-                        <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[400px] overflow-hidden rounded-xl border p-4">
-                            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                                <Pill className="h-5 w-5" />
-                                Reminders
-                            </h2>
-                            <div className="max-h-[calc(100%-2rem)] space-y-2 overflow-auto">
-                                {upcomingReminders?.slice(0, 3).map((reminder) => (
-                                    <div key={reminder.id} className="rounded-lg bg-neutral-100 p-2 dark:bg-neutral-800">
-                                        <div className="text-sm font-medium capitalize">{reminder.reminder_type}</div>
-                                        <div className="text-sm text-neutral-600 dark:text-neutral-400">{reminder.reminder_message}</div>
-                                        <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-500">{reminder.reminder_time}</div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        
                         <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[400px] rounded-xl border p-4">
                             <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
                                 <Activity className="h-5 w-5" />

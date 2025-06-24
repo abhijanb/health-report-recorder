@@ -11,34 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-       Schema::create('record_histories', function (Blueprint $table) {
-    $table->id();
+        Schema::create('record_histories', function (Blueprint $table) {
+            $table->id();
 
-    $table->foreignId('record_id')
-        ->constrained('health_records')
-        ->onDelete('cascade');
+            $table->foreignId('record_id')
+                ->constrained('health_records')
+                ->onDelete('cascade');
 
-    $table->foreignId('user_id')
-        ->constrained('users')
-        ->onDelete('cascade');
+            $table->foreignId('user_id')
+                ->constrained('users')
+                ->onDelete('cascade');
 
-    $table->string('name');
-    $table->enum('record_type', ['file', 'text', 'image', 'json']);
-    $table->text('record_details')->nullable();
-    $table->string('record_file', 255)->nullable();
-    $table->enum('priority', ['low', 'normal', 'high'])->default('normal');
-    $table->enum('status', ['active', 'archived', 'pending'])->default('active');
-    $table->enum('visibility', ['public_all', 'friends', 'private'])->default('private');
-    $table->decimal('value', 10, 2)->nullable();
-    $table->string('unit')->nullable();
-    $table->date('date_of_record')->nullable();
-    $table->json('tags')->nullable(); // requires MySQL 5.7+ or Postgres
-    $table->string('source')->nullable();
+            $table->string('name');
+            $table->enum('record_type', ['file', 'text', 'image', 'json']);
+            $table->text('record_details')->nullable();
+            $table->string('record_file', 255)->nullable();
+            $table->enum('priority', ['low', 'normal', 'high'])->default('normal');
+            $table->enum('status', ['active', 'archived', 'pending'])->default('active');
+            $table->decimal('value', 10, 2)->nullable();
+            $table->string('unit')->nullable();
+            $table->date('date_of_record');
+            $table->json('tags')->nullable(); 
+            $table->string('source')->nullable();
 
-    $table->softDeletes();
-    $table->timestamps();
-});
-
+            $table->softDeletes();
+            $table->timestamps();
+        });
     }
 
     /**

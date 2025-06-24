@@ -35,10 +35,11 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'dob' => 'required|date',
+            'dob' => 'required|date|before:today',
             'gender' => 'required|in:male,female,other',
             'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
+        
         $userData = [
             'name' => $request->name,
             'email' => $request->email,

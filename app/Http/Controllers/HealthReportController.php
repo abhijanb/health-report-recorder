@@ -73,7 +73,7 @@ public function store(Request $request)
             'visibility' => $existing->visibility,
             'value' => $existing->value,
             'unit' => $existing->unit,
-            'date_of_record' => $existing->date_of_record,
+            'date_of_record' => $existing->created_at,
             'tags' => $existing->tags,
             'source' => $existing->source,
         ]);
@@ -105,7 +105,6 @@ public function store(Request $request)
             'visibility' => $request->visibility,
             'value' => $request->value,
             'unit' => $request->unit,
-            'date_of_record' => $request->date_of_record,
             'tags' => $tags,
             'source' => $request->source,
         ]);

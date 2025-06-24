@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, BookOpenCheck, Folder, LayoutGrid , Handshake} from 'lucide-react';
+import { BookOpen, BookOpenCheck, Folder, LayoutGrid , Handshake, Scale} from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -23,16 +23,17 @@ const mainNavItems: NavItem[] = [
         href:'/health-record/create',
         icon:BookOpenCheck
     },
-    {
-        title: 'Reminder',
-        href: '/reminder',
-        icon: BookOpen,
-    },
-    {
-        title: 'Add Reminder',
-        href: '/reminder/create',
-        icon: BookOpen,
-    },
+   
+    // {
+    //     title: 'Reminder',
+    //     href: '/reminder',
+    //     icon: BookOpen,
+    // },
+    // {
+    //     title: 'Add Reminder',
+    //     href: '/reminder/create',
+    //     icon: BookOpen,
+    // },
     {
         title: 'Medicine',
         href: '/medicine',
@@ -43,11 +44,16 @@ const mainNavItems: NavItem[] = [
         href: '/medicine/create',
         icon: Folder,
     },
-    {
-        title:'Relation',
-        href:'/relation/',
-        icon: Handshake
-    }
+     {
+        title:'Predict Diabetes',
+        href:'/predict-diabetes',
+        icon: Scale
+    },
+    // {
+    //     title:'Relation',
+    //     href:'/relation/',
+    //     icon: Handshake
+    // }
 
 ];
 
