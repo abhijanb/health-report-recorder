@@ -46,7 +46,7 @@ const mainNavItems: NavItem[] = [
     },
      {
         title:'Predict Diabetes',
-        href:'/predict-diabetes',
+        href:'/predict',
         icon: Scale
     },
     // {

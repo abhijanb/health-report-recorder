@@ -1,6 +1,6 @@
 import AppLayout from '@/layouts/app-layout'
-import { Head, useForm, router } from '@inertiajs/react'
-import { useEffect, useState } from 'react'
+import { Head, useForm } from '@inertiajs/react'
+import { useState } from 'react'
 
 const PredictDiabetes = ({ record }) => {
   const [showForm, setShowForm] = useState(false)
@@ -19,14 +19,14 @@ const PredictDiabetes = ({ record }) => {
   const handleOwnData = () => {
     if (record) {
       setData({
-        gender: record.gender,
-        age: record.age,
-        hypertension: record.hypertension,
-        heart_disease: record.heart_disease,
-        smoking_history: record.smoking_history,
-        bmi: record.bmi,
-        hba1c: record.hba1c,
-        glucose: record.glucose
+        gender: record.gender?.toLowerCase() || '',
+        age: record.age || '',
+        hypertension: record.hypertension || '',
+        heart_disease: record.heart_disease || '',
+        smoking_history: record.smoking_history || '',
+        bmi: record.bmi || '',
+        hba1c: record.hba1c || '',
+        glucose: record.glucose || ''
       })
       setShowForm(true)
     } else {
@@ -73,12 +73,14 @@ const PredictDiabetes = ({ record }) => {
         {showForm && (
           <form onSubmit={handleSubmit} className="space-y-6">
             {[
-              { label: 'Gender', name: 'gender', type: 'select', options: ['Female', 'Male', 'Other'] },
+              { label: 'Gender', name: 'gender', type: 'select', options: ['female', 'male', 'other'] },
               { label: 'Age', name: 'age', type: 'number' },
               { label: 'Hypertension (0/1)', name: 'hypertension', type: 'number' },
               { label: 'Heart Disease (0/1)', name: 'heart_disease', type: 'number' },
               {
-                label: 'Smoking History', name: 'smoking_history', type: 'select',
+                label: 'Smoking History',
+                name: 'smoking_history',
+                type: 'select',
                 options: ['never', 'No Info', 'current', 'former', 'not current', 'ever']
               },
               { label: 'BMI', name: 'bmi', type: 'number', step: '0.01' },
@@ -86,18 +88,20 @@ const PredictDiabetes = ({ record }) => {
               { label: 'Glucose', name: 'glucose', type: 'number' }
             ].map(({ label, name, type, options, step }) => (
               <div key={name}>
-                <label className="block font-medium">{label}:</label>
+                <label className="block font-medium mb-1">{label}:</label>
                 {type === 'select' ? (
                   <select
                     name={name}
-                    value={data[name]}
+                    value={data[name] || ''}
                     onChange={e => setData(name, e.target.value)}
                     className="w-full p-2 border rounded"
                     required
                   >
                     <option value="">-- Select --</option>
                     {options.map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
+                      <option key={opt} value={opt.toLowerCase()}>
+                        {opt.charAt(0).toUpperCase() + opt.slice(1)}
+                      </option>
                     ))}
                   </select>
                 ) : (
@@ -105,7 +109,7 @@ const PredictDiabetes = ({ record }) => {
                     type={type}
                     step={step}
                     name={name}
-                    value={data[name]}
+                    value={data[name] || ''}
                     onChange={e => setData(name, e.target.value)}
                     className="w-full p-2 border rounded"
                     required
@@ -114,7 +118,10 @@ const PredictDiabetes = ({ record }) => {
               </div>
             ))}
 
-            <button type="submit" className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition">
+            <button
+              type="submit"
+              className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition"
+            >
               Predict
             </button>
           </form>

@@ -21,8 +21,6 @@ class DashboardController extends Controller
             'date_of_birth' => $user->date_of_birth,
             'age' => $user->date_of_birth ? floor(Carbon::parse($user->date_of_birth)->diffInYears()) : null,
             'gender' => $user->gender,
-            'phone_number' => $user->phone_number,
-            'address' => $user->address,
             'avatar' => $user->avatar
         ];
         
