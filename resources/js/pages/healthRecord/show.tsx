@@ -10,15 +10,13 @@ type Props = {
         name: string;
         record_details: string;
         record_file: string;
-        record_type: string;  // added to distinguish file type
+        record_type: string;
         visibility: string;
         value?: string | null;
     };
 };
 
 const Show = ({ record }: Props) => {
-console.log(record)
-
     const { auth, message } = usePage<SharedData>().props;
 
     const createdDate = new Date(record.created_at);
@@ -28,18 +26,15 @@ console.log(record)
     const date = createdDate.toLocaleDateString();
     const time = createdDate.toLocaleTimeString();
 
-    const diffMs = now.getTime() - createdDate.getTime();
+    const diffMs = now.getTime() - updatedDate.getTime();
     const diffHours = diffMs / (1000 * 60 * 60);
-    let diffMinutes = 0;
-    if (updatedDate.getTime() === createdDate.getTime() && diffHours < 4) {
-        diffMinutes = 4 * 60 - Math.floor(diffMs / (1000 * 60));
-    }
+    const editable = diffHours <= 6;
 
-    const editable = updatedDate.getTime() === createdDate.getTime() && diffHours <= 4;
+    const diffMinutes = editable ? Math.max(0, 6 * 60 - Math.floor(diffMs / (1000 * 60))) : 0;
 
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: `welcome ${auth.user.name}`,
+            title: `Welcome ${auth.user.name}`,
             href: '/showReport',
         },
     ];
@@ -54,13 +49,9 @@ console.log(record)
         }
     };
 
-    // Backend URL for serving private file
     const fileUrl = `/health-record/file/${record.record_file}`;
-
-    // Check if file is PDF by extension
-
     const isPdf = record.record_file?.toLowerCase().endsWith('.pdf');
-    const isImage = record.record_file?.toLowerCase().endsWith('.png');
+    const isImage = record.record_file?.toLowerCase().endsWith('.png') || record.record_file?.toLowerCase().endsWith('.jpg') || record.record_file?.toLowerCase().endsWith('.jpeg');
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -70,28 +61,16 @@ console.log(record)
             <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 px-4 py-10 dark:bg-gray-900">
                 <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white shadow transition duration-200 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-                    title="Shortcut: Ctrl+P (Cmd+P on Mac)"
+                    className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white shadow hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M6 9V2h12v7m-6 4v6m-4 0h8M4 13h16v6H4v-6z"
-                        />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 9V2h12v7m-6 4v6m-4 0h8M4 13h16v6H4v-6z" />
                     </svg>
                     Export as PDF
                 </button>
 
                 <div className="relative w-full max-w-xl space-y-6 rounded-2xl bg-white p-8 shadow-md dark:bg-gray-800">
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between gap-4">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-800 dark:text-white">Report Name</h1>
                             <span className="block text-gray-600 dark:text-gray-300">{record.name}</span>
@@ -100,9 +79,7 @@ console.log(record)
                         <div className="text-right">
                             <p className="text-sm text-gray-500 dark:text-gray-400">Added Date</p>
                             <span className="text-sm text-gray-600 dark:text-gray-300">{date}</span>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">Added Time</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Added Time</p>
                             <span className="text-sm text-gray-600 dark:text-gray-300">{time}</span>
                         </div>
                     </div>
@@ -114,7 +91,7 @@ console.log(record)
 
                     {record.record_file && (
                         <div>
-                            <p className="text-lg font-medium text-gray-700 dark:text-gray-200">Record File:</p>
+                            <p className="text-lg font-medium text-gray-700 dark:text-gray-200">Record File</p>
                             {isImage ? (
                                 <img
                                     src={fileUrl}
@@ -140,7 +117,7 @@ console.log(record)
                     )}
 
                     <div>
-                        <p className="text-lg font-medium text-gray-700 dark:text-gray-200">Record Visibility</p>
+                        <p className="text-lg font-medium text-gray-700 dark:text-gray-200">Visibility</p>
                         <span className="block text-gray-600 dark:text-gray-400">{record.visibility}</span>
                     </div>
 
@@ -153,13 +130,15 @@ console.log(record)
 
                     <div className="flex w-full items-center justify-between gap-8 rounded-xl border bg-white px-6 py-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                         <div className="flex flex-col">
-                            <p className="mb-1 text-sm text-black dark:text-white">Cannot edit after</p>
-                            <span className="text-xl leading-tight font-semibold text-red-600 dark:text-red-500">{diffMinutes}m</span>
+                            <p className="mb-1 text-sm text-black dark:text-white">Can edit for</p>
+                            <span className="text-xl font-semibold text-red-600 dark:text-red-500">
+                                {Math.floor(diffMinutes / 60)}h {diffMinutes % 60}m
+                            </span>
 
                             {editable ? (
                                 <Link
                                     href={`/health-record/${record.id}/edit`}
-                                    className="mt-3 rounded-lg bg-green-500 px-5 py-2 font-semibold text-white shadow transition duration-200 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
+                                    className="mt-3 rounded-lg bg-green-500 px-5 py-2 font-semibold text-white shadow hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700"
                                 >
                                     Edit
                                 </Link>
@@ -171,17 +150,19 @@ console.log(record)
                         </div>
 
                         <div className="flex flex-col items-end">
-                            <p className="mb-1 text-sm text-black dark:text-white">Cannot delete after</p>
-                            <span className="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-300">{diffMinutes}m</span>
+                            <p className="mb-1 text-sm text-black dark:text-white">Can delete for</p>
+                            <span className="text-xl font-semibold text-gray-800 dark:text-gray-300">
+                                {Math.floor(diffMinutes / 60)}h {diffMinutes % 60}m
+                            </span>
 
                             <button
                                 disabled={!editable}
                                 onClick={deleteHandle}
-                                className={`mt-3 rounded-lg ${
+                                className={`mt-3 rounded-lg px-5 py-2 font-semibold text-white shadow transition duration-200 ${
                                     editable
                                         ? 'bg-red-500 dark:bg-red-600 hover:bg-red-600 dark:hover:bg-red-700'
                                         : 'bg-gray-400 cursor-not-allowed'
-                                } px-5 py-2 font-semibold text-white shadow transition duration-200`}
+                                }`}
                             >
                                 Delete
                             </button>

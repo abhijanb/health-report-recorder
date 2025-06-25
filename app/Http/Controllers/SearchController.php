@@ -3,128 +3,45 @@
 namespace App\Http\Controllers;
 
 use App\Models\HealthRecord;
-use App\Models\User;
+use App\Models\Medicine; // Assuming you have a Medicine model
+use App\Models\MedicineReport;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class SearchController extends Controller
 {
-    //
+    // Shared render method for inertia views
+    public function renderSearch($data, $type)
+    {
+        return Inertia::render('search/index', [
+            'results' => $data,
+            'type' => $type,
+        ]);
+    }
 
-    public function renderSearch($data) {
-    return Inertia::render('search/index', [
-        'results' => $data,
-    ]);
-}
+    // Search health records by name, details, or other relevant fields
+    public function searchHealth($search)
+    {
+        $data = HealthRecord::where('name', 'like', "%{$search}%")
+            ->orWhere('record_details', 'like', "%{$search}%")
+            ->orWhere('record_type', 'like', "%{$search}%")
+            ->orWhere('status', 'like', "%{$search}%")
+            ->orWhere('priority', 'like', "%{$search}%")
+            ->orWhere('source', 'like', "%{$search}%")
+            ->orWhere('unit', 'like', "%{$search}%")
+            ->orWhereJsonContains('tags', $search)
+            ->paginate(15);
 
-public function searchAll($search)
-{
-    $data = HealthRecord::where('name', $search)
-        ->orWhere('record_type', $search)
-        ->orWhere('record_details', 'like', "%{$search}%")
-        ->orWhere('status', $search)
-        ->orWhere('priority', $search)
-        ->orWhere('visibility', $search)
-        ->orWhere('source', 'like', "%{$search}%")
-        ->orWhere('unit', 'like', "%{$search}%")
-        ->orWhereJsonContains('tags', $search)
-        ->paginate(15); // paginate instead of get()
+        return $this->renderSearch($data, 'health');
+    }
 
-    return $this->renderSearch($data);
-}
-public function searchUser($search)
-{
-    $data = User::where('name', 'like', "%{$search}%")
-        ->orWhere('email', 'like', "%{$search}%")
-        ->paginate(10);
+    // Search medicine by name or description (adjust fields as per your Medicine model)
+    public function searchMedicine($search)
+    {
+        $data = MedicineReport::where('name', 'like', "%{$search}%")
+            ->orWhere('description', 'like', "%{$search}%")
+            ->paginate(15);
 
-    return $this->renderSearch($data);
-}
-public function searchUrgent($search)
-{
-    $data = HealthRecord::where('priority', 'high')
-        ->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('record_details', 'like', "%{$search}%");
-        })
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-public function searchPublic($search)
-{
-    $data = HealthRecord::where('visibility', 'public_all')
-        ->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('record_details', 'like', "%{$search}%");
-        })
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-public function searchTag($search)
-{
-    $data = HealthRecord::whereJsonContains('tags', $search)
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-public function searchDate($search)
-{
-    $data = HealthRecord::whereDate('date_of_record', $search)
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-public function searchField($search)
-{
-    $data = HealthRecord::where('record_type', $search)
-        ->orWhere('file_type', 'like', "%{$search}%")
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
-
-public function searchFuture($search)
-{
-    $data = HealthRecord::where('date_of_record', '>', now())
-        ->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('record_details', 'like', "%{$search}%");
-        })
-        ->paginate(15);
-
-       return $this->renderSearch($data);
-
-}
-
-
-
-public function searchDoctor($search)
-{
-    $data = User::where('role', 'doctor')
-        ->where(function ($q) use ($search) {
-            $q->where('name', 'like', "%{$search}%")
-              ->orWhere('email', 'like', "%{$search}%");
-        })
-        ->paginate(10);
-
-        return $this->renderSearch($data);
-
-}
-
-public function searchBilling($search)
-{
-    $data = HealthRecord::where('unit', 'like', "%{$search}%")
-        ->orWhere('value', 'like', "%{$search}%")
-        ->paginate(15);
-
-        return $this->renderSearch($data);
-
-}
+        return $this->renderSearch($data, 'medicine');
+    }
 }

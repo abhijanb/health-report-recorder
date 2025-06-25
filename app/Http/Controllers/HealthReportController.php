@@ -34,10 +34,8 @@ public function store(Request $request)
         'record_file' => 'nullable|file',
         'priority' => 'required|in:low,normal,high',
         'status' => 'required|in:active,archived,pending',
-        'visibility' => 'required|in:public_all,friends,private',
         'value' => 'nullable|numeric',
         'unit' => 'nullable|string',
-        'date_of_record' => 'nullable|date',
         'tags' => 'nullable|array',
         'tags.*' => 'string',
         'source' => 'nullable|string',
@@ -55,7 +53,7 @@ public function store(Request $request)
         }
     }
     $file = $request->file('record_file');
-    $filepath = $file ? $file->store('health-records', 'private') : null;
+    $filepath = $file ? $file->store('health-records', 'public') : null;
     $tags = $request->tags ? json_encode($request->tags) : null;
     $existing = HealthRecord::where('user_id', Auth::id())
         ->where('name', $request->name)
@@ -70,10 +68,9 @@ public function store(Request $request)
             'record_file' => $existing->record_file,
             'priority' => $existing->priority,
             'status' => $existing->status,
-            'visibility' => $existing->visibility,
             'value' => $existing->value,
-            'unit' => $existing->unit,
             'date_of_record' => $existing->created_at,
+            'unit' => $existing->unit,
             'tags' => $existing->tags,
             'source' => $existing->source,
         ]);
@@ -85,10 +82,8 @@ public function store(Request $request)
             'record_file' => $filepath,
             'priority' => $request->priority,
             'status' => $request->status,
-            'visibility' => $request->visibility,
             'value' => $request->value,
             'unit' => $request->unit,
-            'date_of_record' => $request->date_of_record,
             'tags' => $tags,
             'source' => $request->source,
         ]);
@@ -124,36 +119,49 @@ public function store(Request $request)
         // dd($record);
         return Inertia::render('healthRecord/edit',['record'=>$record]);
     }
-    public function update(Request $request,$id)
-    {
-        $request->validate([
-            'name'=>'required|string|max:255',
-           'record_type'=>'required|string|in:file,text,image',
-           'record_details'=>'required|string|max:2000',
-          'record_file'=>($request->hasFile('record_file')?"file|mimes:jpeg,png,jpg|max:2048" : ""),
-           'visibility'=>'required|in:public_all,friends,private,',
-           'value'=>'numeric'
+    public function update(Request $request, $id)
+{
+    $record = HealthRecord::where('user_id', Auth::id())->findOrFail($id);
 
-        ]);
-        $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        $data = [
-            'user_id' => Auth::id(),
-            'name'=>$request->name,
-           'record_type'=>$request->record_type,
-           'record_details'=>$request->record_details,
-            'visibility'=>$request->visibility,
-            'value'=>$request->value,
-        ];
-        if($request->file('record_file') == null){
-            $data['record_file'] = $record->record_file;
-        }else{
-            
-            $filepath = $request->file('record_file')->store('health-records','private');
-            $data['record_file'] = $filepath;
-        }
-        $record->update($data);
-        return to_route('health-record.index');
+    // ✅ Check if updated_at is older than 6 hours
+    if ($record->updated_at->diffInHours(now()) > 6) {
+        return back()->withErrors(['error' => 'This record cannot be updated because it is older than 6 hours.']);
     }
+
+    // ✅ Now validate inputs
+    $request->validate([
+        'name'         => 'required|string|max:255',
+        'record_type'  => 'required|string|in:file,text,image',
+        'record_details' => 'required|string|max:2000',
+        'record_file'  => $request->hasFile('record_file') ? 'file|mimes:jpeg,png,jpg|max:2048' : '',
+        'visibility'   => 'required|in:public_all,friends,private',
+        'value'        => 'nullable|numeric',
+    ]);
+
+    // ✅ Build update data
+    $data = [
+        'user_id'        => Auth::id(),
+        'name'           => $request->name,
+        'record_type'    => $request->record_type,
+        'record_details' => $request->record_details,
+        'visibility'     => $request->visibility,
+        'value'          => $request->value,
+    ];
+
+    // ✅ Handle file update
+    if ($request->hasFile('record_file')) {
+        $filepath = $request->file('record_file')->store('health-records', 'private');
+        $data['record_file'] = $filepath;
+    } else {
+        $data['record_file'] = $record->record_file;
+    }
+
+    // ✅ Update the record
+    $record->update($data);
+
+    return to_route('health-record.index')->with('success', 'Record updated successfully.');
+}
+
     public function destroy($id){
 
         $record = HealthRecord::where('user_id',Auth::id())->find($id);

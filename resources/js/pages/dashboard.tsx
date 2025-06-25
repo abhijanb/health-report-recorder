@@ -83,7 +83,7 @@ export default function Dashboard() {
                                         </div>
                                     </div>
                                 </div>
-                                <div className="rounded-lg bg-neutral-100 p-3 dark:bg-neutral-800">
+                               {/* <div className="rounded-lg bg-neutral-100 p-3 dark:bg-neutral-800">
                                     <div className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Phone Number</div>
                                     <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
                                         {userProfile.phone_number || 'Not set'}
@@ -94,7 +94,7 @@ export default function Dashboard() {
                                     <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
                                         {userProfile.address || 'Not set'}
                                     </div>
-                                </div>
+                                </div>*/}
                             </div>
                         </div>
                         

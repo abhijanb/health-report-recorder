@@ -20,7 +20,6 @@ const HealthRecordForm = () => {
     record_file: null,
     priority: '',
     status: '',
-    visibility: '',
     value: 0,
     unit: '',
     tags: [],
@@ -28,43 +27,36 @@ const HealthRecordForm = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Determine if record_type requires file and details
   const isFileOrImage = data.record_type === 'file' || data.record_type === 'image';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
-    if (file) {
-      setData('record_file', file);
-    } else {
-      setData('record_file', null);
-    }
+    setData('record_file', file);
   };
 
-  // Client-side validation before submit
   const canSubmit = () => {
-    if (!data.record_details.trim()) return false; // details required
-    if (isFileOrImage) {
-      if (!data.record_file) return false;  // file required
-    }
+    if (!data.name.trim()) return false;
+    if (!data.priority) return false;
+    if (!data.status) return false;
+    if (isFileOrImage && !data.record_details.trim()) return false;
+    if (isFileOrImage && !data.record_file) return false;
     return true;
   };
 
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!canSubmit()) {
-      alert('Please provide both a file and record details for File or Image record types.');
+      alert('Please fill in all required fields.');
       return;
     }
-  
+
     post(route('health-record.store'), {
       forceFormData: true,
       onFinish: () => reset(),
     });
   };
 
-  // Allowed medical units only
   const medicalUnits = [
     { value: 'mg/dL', label: 'mg/dL (milligrams per deciliter)' },
     { value: 'mmol/L', label: 'mmol/L (millimoles per liter)' },
@@ -90,8 +82,12 @@ const HealthRecordForm = () => {
                 value={data.name}
                 onChange={(e) => setData('name', e.target.value)}
                 disabled={processing}
+                className={`${
+                  !data.name.trim() ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                }`}
                 required
               />
+              {!data.name.trim() && <p className="text-red-500 text-sm">Name is required.</p>}
               <InputError message={errors.name} />
             </div>
 
@@ -146,7 +142,9 @@ const HealthRecordForm = () => {
                 onChange={handleFileChange}
                 disabled={processing}
                 className={`w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:text-white ${
-                  isFileOrImage && !data.record_file ? 'border-red-500' : 'border-gray-300 dark:border-gray-700'
+                  isFileOrImage && !data.record_file
+                    ? 'border-red-500'
+                    : 'border-gray-300 dark:border-gray-700'
                 }`}
                 accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
                 required={isFileOrImage}
@@ -164,7 +162,9 @@ const HealthRecordForm = () => {
                 id="priority"
                 value={data.priority}
                 onChange={(e) => setData('priority', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className={`w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
+                  !data.priority ? 'border-red-500' : 'border-gray-300'
+                }`}
                 disabled={processing}
                 required
               >
@@ -175,6 +175,7 @@ const HealthRecordForm = () => {
                 <option value="normal">Normal — Standard attention</option>
                 <option value="high">High — Immediate action needed</option>
               </select>
+              {!data.priority && <p className="text-red-500 text-sm">Priority is required.</p>}
               <InputError message={errors.priority} />
             </div>
 
@@ -185,7 +186,9 @@ const HealthRecordForm = () => {
                 id="status"
                 value={data.status}
                 onChange={(e) => setData('status', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                className={`w-full p-2 border rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white ${
+                  !data.status ? 'border-red-500' : 'border-gray-300'
+                }`}
                 disabled={processing}
                 required
               >
@@ -196,28 +199,8 @@ const HealthRecordForm = () => {
                 <option value="archived">Archived — Stored but inactive</option>
                 <option value="pending">Pending — Awaiting action</option>
               </select>
+              {!data.status && <p className="text-red-500 text-sm">Status is required.</p>}
               <InputError message={errors.status} />
-            </div>
-
-            {/* Visibility */}
-            <div className="space-y-2">
-              <Label htmlFor="visibility">Visibility</Label>
-              <select
-                id="visibility"
-                value={data.visibility}
-                onChange={(e) => setData('visibility', e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-indigo-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-                disabled={processing}
-                required
-              >
-                <option value="" disabled>
-                  -- Select Visibility --
-                </option>
-                <option value="public_all">Public — Visible to everyone</option>
-                <option value="friends">Friends — Shared with friends only</option>
-                <option value="private">Private — Only you can see</option>
-              </select>
-              <InputError message={errors.visibility} />
             </div>
 
             {/* Value */}

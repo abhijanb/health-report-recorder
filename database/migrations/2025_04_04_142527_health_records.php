@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('source');
             $table->softDeletes();
             $table->timestamps();
-            $table->index(['user_id', 'record_type', 'visibility', 'date_of_record']);
+            // $table->index(['user_id', 'record_type']);
         });
     }
 

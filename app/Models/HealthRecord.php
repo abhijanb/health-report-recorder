@@ -18,7 +18,7 @@ class HealthRecord extends Model
         'record_file',
         'priority',
         'status',
-        'visibility',
+        // 'visibility',
         'value',
         'unit',
         'tags',

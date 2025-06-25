@@ -9,7 +9,6 @@ type Search = {
     search: string;
 };
 
-
 const Searchbar = () => {
     const formRef = useRef<HTMLFormElement | null>(null);
     const { data, setData, processing, get, errors } = useForm<Search>({
@@ -21,28 +20,28 @@ const Searchbar = () => {
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         const query = data.search.trim();
-        if (query.length < 2) return;
+
+        if (query.length < 1) return; // Allow single char query with prefix
 
         const prefix = query.charAt(0);
-        const searchTerm = query.slice(1).trim();
+        const hasPrefix = ['#', '@', '*'].includes(prefix);
+        const searchTerm = hasPrefix ? query.slice(1).trim() : query;
+
+        if (hasPrefix && searchTerm.length < 1) {
+            // If prefix present but no search term, do nothing
+            return;
+        }
 
         const routeMap: Record<string, string> = {
-            '*': 'search.all',
-            '@': 'search.user',
-            '#': 'search.doctor',
-            '!': 'search.urgent',
-            '%': 'search.public',
-            '^': 'search.tag',
-            '$': 'search.billing',
-            '~': 'search.date',
-            ':': 'search.field',
-            '>': 'search.future',
+            '#': 'search.health-record',
+            '@': 'search.medicine',
+            '*': 'search.health-record',
         };
 
-        if (routeMap[prefix]) {
+        if (hasPrefix && routeMap[prefix]) {
             get(route(routeMap[prefix], { search: searchTerm }));
         } else {
-            router.get(route('search.all', { search: searchTerm }));
+            router.get(route('search.health-record', { search: query }));
         }
     };
 
@@ -62,9 +61,13 @@ const Searchbar = () => {
         }
     };
 
+    // Determine if middleware-like message should show for prefixes # or * or no prefix
+    const prefix = data.search.charAt(0);
+    const showMiddlewareMessage =
+        ['#', '*'].includes(prefix) || (data.search.length > 0 && !['#', '@', '*'].includes(prefix));
+
     return (
         <>
-            {/* Overlay: works on both desktop and mobile */}
             {show && (
                 <div
                     className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
@@ -72,7 +75,6 @@ const Searchbar = () => {
                 />
             )}
 
-            {/* Foreground content */}
             <div className="relative z-50">
                 <form
                     ref={formRef}
@@ -84,7 +86,7 @@ const Searchbar = () => {
                         className={`border border-r-0 transition-all duration-300 ease-in-out ${
                             show ? 'w-96' : 'w-32'
                         }`}
-                        placeholder="Search"
+                        placeholder="Search Health or Medicine"
                         name="search"
                         type="text"
                         value={data.search}
@@ -98,7 +100,7 @@ const Searchbar = () => {
                     >
                         <SearchIcon className="h-4 w-4" />
                     </Button>
-                    {/* Mobile Close Button */}
+
                     {show && (
                         <button
                             type="button"
@@ -110,21 +112,35 @@ const Searchbar = () => {
                     )}
                 </form>
 
-                {show && (
-                    <div className="absolute left-1/2 mt-2 w-[500px] -translate-x-1/2 rounded-md bg-white p-4 text-sm text-black shadow-xl">
+                {showMiddlewareMessage && (
+                    <div className="absolute left-1/2 mt-2 w-[400px] -translate-x-1/2 rounded-md bg-yellow-100 p-4 text-sm text-black shadow-xl">
+                        <h2 className="mb-2 font-semibold">Middleware Notice</h2>
+                        <p>
+                            You are searching{' '}
+                            {['#', '*'].includes(prefix)
+                                ? 'Health Records'
+                                : 'Health Records (default search)'}.
+                            This search is protected by middleware (authentication & rate limiting).
+                        </p>
+                    </div>
+                )}
+
+                {show && !showMiddlewareMessage && (
+                    <div className="absolute left-1/2 mt-2 w-[400px] -translate-x-1/2 rounded-md bg-white p-4 text-sm text-black shadow-xl">
                         <h2 className="mb-2 font-semibold">Search Syntax</h2>
                         <ul className="list-inside list-disc space-y-1 text-sm">
-                            <li><code>*</code> — All records</li>
-                            <li><code>@</code> — User</li>
-                            <li><code>#</code> — Doctor</li>
-                            <li><code>!</code> — Urgent</li>
-                            <li><code>%</code> — Public</li>
-                            <li><code>^</code> — Tag</li>
-                            <li><code>$</code> — Billing</li>
-                            <li><code>~</code> — Date</li>
-                            <li><code>:</code> — Field</li>
-                            <li><code>&gt;</code> — Future</li>
-                            <li><strong>No prefix</strong> — Own records</li>
+                            <li>
+                                <code>#</code> — Health Records
+                            </li>
+                            <li>
+                                <code>@</code> — Medicine
+                            </li>
+                            <li>
+                                <code>*</code> — Health Records
+                            </li>
+                            <li>
+                                <strong>No prefix</strong> — Search health records by default
+                            </li>
                         </ul>
                     </div>
                 )}
@@ -132,7 +148,5 @@ const Searchbar = () => {
         </>
     );
 };
-
-
 
 export default Searchbar;
