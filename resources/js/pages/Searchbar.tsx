@@ -10,6 +10,7 @@ type Search = {
 };
 
 const Searchbar = () => {
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
     const formRef = useRef<HTMLFormElement | null>(null);
     const { data, setData, processing, get, errors } = useForm<Search>({
         search: '',
@@ -19,6 +20,9 @@ const Searchbar = () => {
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
         const query = data.search.trim();
 
         if (query.length < 1) return; // Allow single char query with prefix
@@ -35,14 +39,16 @@ const Searchbar = () => {
         const routeMap: Record<string, string> = {
             '#': 'search.health-record',
             '@': 'search.medicine',
-            '*': 'search.health-record',
+            // '*': 'search.health-record',
         };
-
+timeoutRef.current = setTimeout(() => {
         if (hasPrefix && routeMap[prefix]) {
             get(route(routeMap[prefix], { search: searchTerm }));
         } else {
             router.get(route('search.health-record', { search: query }));
         }
+},500);
+
     };
 
     // Close on ESC (desktop)
