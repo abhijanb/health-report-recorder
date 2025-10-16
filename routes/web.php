@@ -20,7 +20,7 @@ Route::get('/health-record/file/{any}',[HealthReportController::class,'showImg']
     Route::get('/test',function(){
         return Inertia::render('a');
     });
-    Route::get('/image/{filename}',[HealthReportController::class,'showImage']);
+    Route::get('/image/{healthRecord}',[HealthReportController::class,'showImage']);
 // Route::get('/predict-diabetes', function () {
 //     return Inertia::render('PredictDiabetes');
 // });

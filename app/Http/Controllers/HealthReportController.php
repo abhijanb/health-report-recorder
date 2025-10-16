@@ -2,57 +2,59 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreHealthRecordRequest;
+use App\Http\Requests\UpdateHealthRecordRequest;
 use App\Models\HealthRecord;
 use App\Models\RecordHistory;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
 
 class HealthReportController extends Controller
 {
-    //
-    public function index(){
-        $records = HealthRecord::where('user_id',Auth::id())->get();
-        return Inertia::render('healthRecord/index',['records'=>$records]);
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->authorizeResource(HealthRecord::class, 'health_record');
     }
 
-    public function create(){
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Inertia\Response
+     */
+    public function index()
+    {
+        $records = HealthRecord::with('histories')->where('user_id', Auth::id())->get();
+
+        return Inertia::render('healthRecord/index', ['records' => $records]);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Inertia\Response
+     */
+    public function create()
+    {
         return Inertia::render('healthRecord/create');
     }
 
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'record_type' => 'required|in:file,text,image,json',
-        'record_details' => 'nullable|string',
-        'record_file' => 'nullable|file',
-        'priority' => 'required|in:low,normal,high',
-        'status' => 'required|in:active,archived,pending',
-        'value' => 'nullable|numeric',
-        'unit' => 'nullable|string',
-        'tags' => 'nullable|array',
-        'tags.*' => 'string',
-        'source' => 'nullable|string',
-    ]);
-    if (in_array($request->record_type, ['file', 'image'])) {
-        if (!$request->hasFile('record_file')) {
-            throw ValidationException::withMessages([
-                'record_file' => 'Record file is required when record type is file or image.'
-            ]);
-        }
-        if (empty($request->record_details)) {
-            throw ValidationException::withMessages([
-                'record_details' => 'Record details are required when record type is file or image.'
-            ]);
-        }
-    }
-    $file = $request->file('record_file');
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreHealthRecordRequest  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function store(StoreHealthRecordRequest $request)
+    {
+        $file = $request->file('record_file');
     $filepath = $file ? $file->store('health-records', 'public') : null;
     $tags = $request->tags ? json_encode($request->tags) : null;
     $existing = HealthRecord::where('user_id', Auth::id())
@@ -107,36 +109,40 @@ public function store(Request $request)
 
     return to_route('health-record.index')->with('success', 'Health record saved successfully.');
 }
-    public function show($id)
+    /**
+     * Display the specified resource.
+     *
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Inertia\Response
+     */
+    public function show(HealthRecord $healthRecord)
     {
-        $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        return Inertia::render('healthRecord/show',['record'=>$record]);
+        return Inertia::render('healthRecord/show', ['record' => $healthRecord]);
     }
 
-    public function edit($id)
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Inertia\Response
+     */
+    public function edit(HealthRecord $healthRecord)
     {
-        $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        // dd($record);
-        return Inertia::render('healthRecord/edit',['record'=>$record]);
+        return Inertia::render('healthRecord/edit', ['record' => $healthRecord]);
     }
-    public function update(Request $request, $id)
-{
-    $record = HealthRecord::where('user_id', Auth::id())->findOrFail($id);
-
-    // ✅ Check if updated_at is older than 6 hours
-    if ($record->updated_at->diffInHours(now()) > 6) {
-        return back()->withErrors(['error' => 'This record cannot be updated because it is older than 6 hours.']);
-    }
-
-    // ✅ Now validate inputs
-    $request->validate([
-        'name'         => 'required|string|max:255',
-        'record_type'  => 'required|string|in:file,text,image',
-        'record_details' => 'required|string|max:2000',
-        'record_file'  => $request->hasFile('record_file') ? 'file|mimes:jpeg,png,jpg|max:2048' : '',
-        'visibility'   => 'required|in:public_all,friends,private',
-        'value'        => 'nullable|numeric',
-    ]);
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\UpdateHealthRecordRequest  $request
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function update(UpdateHealthRecordRequest $request, HealthRecord $healthRecord)
+    {
+        // Check if updated_at is older than 6 hours
+        if ($healthRecord->updated_at->diffInHours(now()) > 6) {
+            return back()->withErrors(['error' => 'This record cannot be updated because it is older than 6 hours.']);
+        }
 
     // ✅ Build update data
     $data = [
@@ -162,71 +168,108 @@ public function store(Request $request)
     return to_route('health-record.index')->with('success', 'Record updated successfully.');
 }
 
-    public function destroy($id){
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function destroy(HealthRecord $healthRecord)
+    {
+        if (Carbon::now()->diffInHours($healthRecord->created_at) < 4) {
+            $healthRecord->delete();
 
-        $record = HealthRecord::where('user_id',Auth::id())->find($id);
-        if(  Carbon::now()->diffInHours($record->created_at) < 4 ){
-
-            $record->delete();
             return to_route('health-record.index');
         }
-        return back()->with(["message" => "cannot delete after 4 hours"]);
+
+        return back()->with(['message' => 'Cannot delete after 4 hours']);
     }
 
-   public function history(HealthRecord $healthRecord)
-   {
-    $histories = HealthRecord::find($healthRecord->id)->histories;
-    if($histories->isEmpty()){
-        return Inertia::render("healthRecord/history")->with(["message"=>"No history found"]);
+    /**
+     * Display the history of the specified resource.
+     *
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Inertia\Response
+     */
+    public function history(HealthRecord $healthRecord)
+    {
+        $histories = $healthRecord->histories;
+        if ($histories->isEmpty()) {
+            return Inertia::render('healthRecord/history')->with(['message' => 'No history found']);
+        }
+
+        return Inertia::render('healthRecord/history', ['histories' => $histories]);
     }
-    
-    return Inertia::render("healthRecord/history",["histories" => $histories]);
-   }
 
-   public function trashAll(){
-    $user = Auth::id();
-    $records = HealthRecord::onlyTrashed()->where("user_id",$user)->get();
-    
-    return Inertia::render("healthRecord/trash",["data"=>$records]);
-   }
+    /**
+     * Display a listing of the trashed resources.
+     *
+     * @return \Inertia\Response
+     */
+    public function trashAll()
+    {
+        $user = Auth::id();
+        $records = HealthRecord::onlyTrashed()->where('user_id', $user)->get();
 
-   public function restore( $healthRecord){
-    $record =  HealthRecord::onlyTrashed()->where("user_id",Auth::id())->find($healthRecord);
-    if(!$record){
-        return back()->with(["message"=>"no record found"]);
-        
+        return Inertia::render('healthRecord/trash', ['data' => $records]);
     }
-    $record->restore();
-    return back()->with(["message"=>"record restored"]);
-   }
 
-   public function permanent( $healthRecord){
-    $record =  HealthRecord::onlyTrashed()->where("user_id",Auth::id())->find($healthRecord);
-    if(!$record){
-        return back()->with(["message"=>"nor found record "]);
+    /**
+     * Restore the specified resource from storage.
+     *
+     * @param  int  $healthRecord
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function restore($healthRecord)
+    {
+        $record = HealthRecord::onlyTrashed()->where('user_id', Auth::id())->find($healthRecord);
+        if (!$record) {
+            return back()->with(['message' => 'No record found']);
+        }
+        $record->restore();
 
+        return back()->with(['message' => 'Record restored']);
     }
-$record->forceDelete();
-return back()->with(["message"=>"record deleted permanently"]);
-   }
+
+    /**
+     * Permanently delete the specified resource from storage.
+     *
+     * @param  int  $healthRecord
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function permanent($healthRecord)
+    {
+        $record = HealthRecord::onlyTrashed()->where('user_id', Auth::id())->find($healthRecord);
+        if (!$record) {
+            return back()->with(['message' => 'No record found']);
+        }
+        $record->forceDelete();
+
+        return back()->with(['message' => 'Record deleted permanently']);
+    }
 
 
 //    $img = "private/health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png"; 
 
 
-public function showImage($filename)
-{
-    $path = 'health-records/' . $filename;
+    /**
+     * Display the specified image.
+     *
+     * @param  \App\Models\HealthRecord  $healthRecord
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function showImage(HealthRecord $healthRecord)
+    {
+        $this->authorize('view', $healthRecord);
 
-    if (!Storage::disk('private')->exists($path)) {
-        abort(404, 'File not found.');
+        $path = $healthRecord->record_file;
+
+        if (!$path || !Storage::disk('private')->exists($path)) {
+            abort(404, 'File not found.');
+        }
+
+        return Storage::disk('private')->download($path);
     }
-
-    $file = Storage::disk('private')->get($path);
-    $type = Storage::disk('private')->mimeType($path);
-return Storage::disk('private')->download('health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png');
-    // return Response::make($file, 200)->header("Content-Type", $type);
-}
 
 // public function test() {
 //     $relativePath = 'health-records/s4xx4Alb2Mqi1uPcpVOsx3Rw5Zdm89usQhecU2zv.png';
