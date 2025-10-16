@@ -11,7 +11,7 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 
 Route::middleware(['auth', 'verified','throttle:60,1'])->group(function () {
-    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     // web.php or routes file
 Route::get('/health-record/file/{any}',[HealthReportController::class,'showImg'])->where('any','.*')->name('showImg');
 

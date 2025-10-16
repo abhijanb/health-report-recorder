@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\User;
+use Tests\TestCase;
+
+uses(Tests\TestCase::class);
 
 test('guests are redirected to the login page', function () {
     $this->get('/dashboard')->assertRedirect('/login');

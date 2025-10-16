@@ -2,6 +2,9 @@
 
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
+use Tests\TestCase;
+
+uses(Tests\TestCase::class);
 use Illuminate\Support\Facades\Notification;
 
 test('reset password link screen can be rendered', function () {

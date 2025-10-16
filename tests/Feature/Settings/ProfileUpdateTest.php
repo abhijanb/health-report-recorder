@@ -1,6 +1,9 @@
 <?php
 
 use App\Models\User;
+use Tests\TestCase;
+
+uses(Tests\TestCase::class);
 
 test('profile page is displayed', function () {
     $user = User::factory()->create();

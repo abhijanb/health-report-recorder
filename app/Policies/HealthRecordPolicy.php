@@ -76,7 +76,6 @@ class HealthRecordPolicy
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function restore(User $user, HealthRecord $healthRecord)
-.
     {
         return $user->id === $healthRecord->user_id;
     }

@@ -31,8 +31,8 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'date_of_birth' =>fake()->date(),
         'gender'=>fake()->randomElement(['male','female','other']),
-        'phone_number'=>fake()->phoneNumber(),
-        'address'=>fake()->address(),
+        // 'phone_number'=>fake()->phoneNumber(),
+        // 'address'=>fake()->address(),
         'avatar'=>fake()->imageUrl()
         ];
     }

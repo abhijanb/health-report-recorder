@@ -2,6 +2,9 @@
 
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Tests\TestCase;
+
+uses(Tests\TestCase::class);
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 

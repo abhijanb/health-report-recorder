@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->date('date_of_birth');
             $table->enum('gender', ['male', 'female', 'other']);
-            $table->string('avatar');
+            $table->string('avatar')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

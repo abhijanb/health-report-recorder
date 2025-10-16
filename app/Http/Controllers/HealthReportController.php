@@ -12,6 +12,13 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @OA\Info(
+ *     version="1.0.0",
+ *     title="Health Report API",
+ *     description="API for managing health reports"
+ * )
+ */
 class HealthReportController extends Controller
 {
     /**
@@ -21,13 +28,28 @@ class HealthReportController extends Controller
      */
     public function __construct()
     {
-        $this->authorizeResource(HealthRecord::class, 'health_record');
+        $this->middleware('can:viewAny,' . HealthRecord::class)->only('index');
+        $this->middleware('can:view,' . HealthRecord::class)->only('show');
+        $this->middleware('can:create,' . HealthRecord::class)->only('create', 'store');
+        $this->middleware('can:update,' . HealthRecord::class)->only('edit', 'update');
+        $this->middleware('can:delete,' . HealthRecord::class)->only('destroy');
+        $this->middleware('can:restore,' . HealthRecord::class)->only('restore');
+        $this->middleware('can:forceDelete,' . HealthRecord::class)->only('permanent');
     }
 
     /**
      * Display a listing of the resource.
      *
      * @return \Inertia\Response
+     *
+     * @OA\Get(
+     *     path="/health-record",
+     *     summary="Get a list of health records",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     )
+     * )
      */
     public function index()
     {
@@ -51,14 +73,26 @@ class HealthReportController extends Controller
      *
      * @param  \App\Http\Requests\StoreHealthRecordRequest  $request
      * @return \Illuminate\Http\RedirectResponse
+     *
+     * @OA\Post(
+     *     path="/health-record",
+     *     summary="Create a new health record",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/StoreHealthRecordRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to the index page"
+     *     )
+     * )
      */
     public function store(StoreHealthRecordRequest $request)
     {
-        $file = $request->file('record_file');
-    $filepath = $file ? $file->store('health-records', 'public') : null;
-    $tags = $request->tags ? json_encode($request->tags) : null;
-    $existing = HealthRecord::where('user_id', Auth::id())
-        ->where('name', $request->name)
+        $filepath = uploadFile($request->file('record_file'), 'health-records', 'private', 'private', Auth::user()->name);
+        $tags = $request->tags ? json_encode($request->tags) : null;
+        $existing = HealthRecord::where('user_id', Auth::id())
+            ->where('name', $request->name)
         ->first();
     if ($existing) {
         RecordHistory::create([
@@ -114,6 +148,21 @@ class HealthReportController extends Controller
      *
      * @param  \App\Models\HealthRecord  $healthRecord
      * @return \Inertia\Response
+     *
+     * @OA\Get(
+     *     path="/health-record/{healthRecord}",
+     *     summary="Get a specific health record",
+     *     @OA\Parameter(
+     *         name="healthRecord",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation"
+     *     )
+     * )
      */
     public function show(HealthRecord $healthRecord)
     {
@@ -136,6 +185,25 @@ class HealthReportController extends Controller
      * @param  \App\Http\Requests\UpdateHealthRecordRequest  $request
      * @param  \App\Models\HealthRecord  $healthRecord
      * @return \Illuminate\Http\RedirectResponse
+     *
+     * @OA\Put(
+     *     path="/health-record/{healthRecord}",
+     *     summary="Update a specific health record",
+     *     @OA\Parameter(
+     *         name="healthRecord",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateHealthRecordRequest")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to the index page"
+     *     )
+     * )
      */
     public function update(UpdateHealthRecordRequest $request, HealthRecord $healthRecord)
     {
@@ -156,10 +224,9 @@ class HealthReportController extends Controller
 
     // ✅ Handle file update
     if ($request->hasFile('record_file')) {
-        $filepath = $request->file('record_file')->store('health-records', 'private');
-        $data['record_file'] = $filepath;
+        $data['record_file'] = uploadFile($request->file('record_file'), 'health-records', 'private', 'private', Auth::user()->name);
     } else {
-        $data['record_file'] = $record->record_file;
+        $data['record_file'] = $healthRecord->record_file;
     }
 
     // ✅ Update the record
@@ -173,6 +240,21 @@ class HealthReportController extends Controller
      *
      * @param  \App\Models\HealthRecord  $healthRecord
      * @return \Illuminate\Http\RedirectResponse
+     *
+     * @OA\Delete(
+     *     path="/health-record/{healthRecord}",
+     *     summary="Delete a specific health record",
+     *     @OA\Parameter(
+     *         name="healthRecord",
+     *         in="path",
+     *         required=true,
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=302,
+     *         description="Redirect to the index page"
+     *     )
+     * )
      */
     public function destroy(HealthRecord $healthRecord)
     {
@@ -262,13 +344,12 @@ class HealthReportController extends Controller
     {
         $this->authorize('view', $healthRecord);
 
-        $path = $healthRecord->record_file;
+        $url = Storage::disk('private')->temporaryUrl(
+            $healthRecord->record_file,
+            now()->addMinutes(5)
+        );
 
-        if (!$path || !Storage::disk('private')->exists($path)) {
-            abort(404, 'File not found.');
-        }
-
-        return Storage::disk('private')->download($path);
+        return redirect($url);
     }
 
 // public function test() {
