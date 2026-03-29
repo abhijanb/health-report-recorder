@@ -3,6 +3,7 @@ import { SharedData, type BreadcrumbItem } from '@/types';
 import { Head, usePage } from '@inertiajs/react';
 import { format } from 'date-fns';
 import { Activity, Pill, Scale } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface UserProfile {
     name: string;
@@ -49,103 +50,115 @@ export default function Dashboard() {
             userProfile: UserProfile;
         }
     >().props;
+
     const breadcrumbs: BreadcrumbItem[] = [
         {
-            title: `welcome ${auth.user.name}`,
+            title: `Welcome ${auth.user.name}`,
             href: '/dashboard',
         },
     ];
+
     return (
-        <div>
-            <AppLayout breadcrumbs={breadcrumbs}>
-                <Head title="Health" />
-                <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                    <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                        <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[400px] overflow-hidden rounded-xl border p-4">
-                            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
+        <AppLayout breadcrumbs={breadcrumbs}>
+            <Head title="Health" />
+            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+                <div className="grid auto-rows-min gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {/* Profile Summary */}
+                    <Card className="h-[400px] overflow-hidden">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
                                 <Scale className="h-5 w-5" />
                                 Profile Summary
-                            </h2>
-                            <div className="max-h-[calc(100%-3rem)] space-y-3 overflow-y-auto">
-                                <div className="rounded-lg bg-neutral-100 p-3 dark:bg-neutral-800">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <div className="text-sm text-neutral-600 dark:text-neutral-400">Age</div>
-                                            <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
-                                                {userProfile.age || 'Not set'}
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-sm text-neutral-600 dark:text-neutral-400">Gender</div>
-                                            <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
-                                                {userProfile.gender || 'Not set'}
-                                            </div>
-                                        </div>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 overflow-y-auto">
+                            <div className="grid grid-cols-2 gap-2 rounded-lg bg-muted p-3">
+                                <div>
+                                    <div className="text-sm text-muted-foreground">Age</div>
+                                    <div className="text-base font-medium">
+                                        {userProfile.age || 'Not set'}
                                     </div>
                                 </div>
-                               {/* <div className="rounded-lg bg-neutral-100 p-3 dark:bg-neutral-800">
-                                    <div className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Phone Number</div>
-                                    <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
-                                        {userProfile.phone_number || 'Not set'}
+                                <div>
+                                    <div className="text-sm text-muted-foreground">Gender</div>
+                                    <div className="text-base font-medium">
+                                        {userProfile.gender || 'Not set'}
                                     </div>
                                 </div>
-                                <div className="rounded-lg bg-neutral-100 p-3 dark:bg-neutral-800">
-                                    <div className="mb-1 text-sm text-neutral-600 dark:text-neutral-400">Address</div>
-                                    <div className="text-base font-medium text-neutral-900 dark:text-neutral-100">
-                                        {userProfile.address || 'Not set'}
-                                    </div>
-                                </div>*/}
                             </div>
-                        </div>
-                        
-                        <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[400px] rounded-xl border p-4">
-                            <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                                <Activity className="h-5 w-5" />
-                                Latest Added Medicine
-                            </h2>
-                            <div className="max-h-[calc(100%-2.75rem)] space-y-3 overflow-y-auto pr-2">
-                                {recentMedicines && recentMedicines.length > 0 ? (
-                                    recentMedicines.map((recentMedicine) => (
-                                        <div key={recentMedicine.id} className="rounded-xl bg-neutral-100 p-4 shadow-sm dark:bg-neutral-800">
-                                            <div className="text-sm font-medium capitalize">{recentMedicine.medicine_name}</div>
-                                            <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{recentMedicine.price}</div>
-                                            <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">
-                                                {format(new Date(recentMedicine.created_at), 'PPP')}
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-sm text-neutral-500 dark:text-neutral-400">No health records available</div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="border-sidebar-border/70 dark:border-sidebar-border relative h-[400px] rounded-xl border p-4">
-                        <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold">
-                            <Activity className="h-5 w-5" />
-                            Latest Health Record
-                        </h2>
+                            {/* More profile fields can be added here with similar style */}
+                        </CardContent>
+                    </Card>
 
-                        <div className="max-h-[calc(100%-2.75rem)] space-y-3 overflow-y-auto pr-1">
-                            {latestHealthRecords && latestHealthRecords.length > 0 ? (
-                                latestHealthRecords.map((latestHealthRecord) => (
-                                    <div key={latestHealthRecord.id} className="rounded-lg bg-neutral-100 p-4 dark:bg-neutral-800">
-                                        <div className="text-sm font-medium capitalize">{latestHealthRecord.record_type}</div>
-                                        <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
-                                            {latestHealthRecord.record_value}
+                    {/* Latest Added Medicine */}
+                    <Card className="h-[400px] overflow-hidden">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Pill className="h-5 w-5" />
+                                Latest Added Medicine
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 overflow-y-auto">
+                            {recentMedicines && recentMedicines.length > 0 ? (
+                                recentMedicines.map((medicine) => (
+                                    <div
+                                        key={medicine.id}
+                                        className="rounded-lg bg-muted p-3 transition-colors hover:bg-muted/80"
+                                    >
+                                        <div className="font-medium capitalize">
+                                            {medicine.medicine_name}
                                         </div>
-                                        <div className="mt-1 text-xs text-neutral-500 dark:text-neutral-500">
-                                            {format(new Date(latestHealthRecord.created_at), 'PPP')}
+                                        <div className="text-lg font-semibold">
+                                            {medicine.price}
+                                        </div>
+                                        <div className="mt-1 text-xs text-muted-foreground">
+                                            {format(new Date(medicine.created_at), 'PPP')}
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <div className="text-neutral-500 dark:text-neutral-400">No health records available</div>
+                                <div className="text-muted-foreground">
+                                    No health records available
+                                </div>
                             )}
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Health Records */}
+                    <Card className="h-[400px] overflow-hidden md:col-span-2 lg:col-span-1">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="flex items-center gap-2 text-lg">
+                                <Activity className="h-5 w-5" />
+                                Latest Health Record
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-3 overflow-y-auto">
+                            {latestHealthRecords && latestHealthRecords.length > 0 ? (
+                                latestHealthRecords.map((record) => (
+                                    <div
+                                        key={record.id}
+                                        className="rounded-lg bg-muted p-3 transition-colors hover:bg-muted/80"
+                                    >
+                                        <div className="text-sm font-medium capitalize">
+                                            {record.record_type}
+                                        </div>
+                                        <div className="text-lg font-semibold">
+                                            {record.record_value}
+                                        </div>
+                                        <div className="mt-1 text-xs text-muted-foreground">
+                                            {format(new Date(record.created_at), 'PPP')}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-muted-foreground">
+                                    No health records available
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
-            </AppLayout>
-        </div>
+            </div>
+        </AppLayout>
     );
 }
